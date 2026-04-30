@@ -1,0 +1,4 @@
+{"event": "SessionStart", "session_id": "test-NN", "ts": "2026-04-22T00:00:00Z"}
+{"event": "PreToolUse", "tool_name": "Edit", "tool_input": {"file_path": "tests/REPLACE_ME.py", "old_string": "REPLACE_OLD", "new_string": "REPLACE_NEW"}, "metadata": {"subagent": null}, "ts": "2026-04-22T00:00:01Z"}
+{"event": "PostToolUse", "tool_name": "Edit", "tool_input": {"file_path": "tests/REPLACE_ME.py", "old_string": "REPLACE_OLD", "new_string": "REPLACE_NEW"}, "tool_output": {"success": true}, "metadata": {"subagent": null}, "ts": "2026-04-22T00:00:02Z"}
+{"event": "Stop", "session_id": "test-NN", "ts": "2026-04-22T00:00:03Z"}

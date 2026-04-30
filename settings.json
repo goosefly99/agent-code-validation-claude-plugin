@@ -1,0 +1,34 @@
+{
+  "$schema": "./settings.schema.json",
+  "verification_quality_floors": {
+    "coverage_pct": 80,
+    "mutation_score_pct": 60,
+    "property_count": 1,
+    "contract_count": 0
+  },
+  "sandbox_provider_preference": [
+    "e2b",
+    "daytona",
+    "modal",
+    "docker",
+    "local"
+  ],
+  "allow_local_fallback": true,
+  "thoroughness_default": "quick",
+  "ensemble_verifier": false,
+  "ensemble_verifier_threshold": 80,
+  "test_path_allowlist": [
+    "tests/**",
+    "test/**",
+    "spec/**",
+    "**/*_test.go",
+    "**/test_*.py",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.test.js",
+    "**/*.spec.js"
+  ],
+  "post_tool_use_latency_budget_ms": 2000,
+  "pre_compact_block_on_suspicious": true,
+  "audit_signing_key_rotation": "session-start"
+}

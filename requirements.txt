@@ -1,0 +1,19 @@
+# Python runtime deps for skills/subagents that shell out to Python libs.
+# Agents call these via MCP tools; the plugin does not vendor or reimplement.
+
+hypothesis>=6.100
+hypothesis[ghostwriter]>=6.100
+hypofuzz>=24.2
+mutmut>=2.5
+cosmic-ray>=8.3
+atheris>=2.3
+crosshair-tool>=0.0.70
+icontract>=2.7
+icontract-hypothesis>=1.1
+deal>=4.24
+pydantic>=2.7
+pydantic-ai>=0.0.13
+pyright>=1.1.362
+ruff>=0.5
+inspect-ai>=0.3
+deepeval>=0.21

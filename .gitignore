@@ -1,18 +1,26 @@
 # Pre-existing artifacts from previous design/scaffold sessions — not tracked.
-# The plugin scaffold itself is generated and lives outside source control.
 research/
 pipeline_mcp_data/
-plugin_scaffold/
 
-# Standard noise
-node_modules/
+# Build
 dist/
 build/
-*.log
-.DS_Store
-.env
-.env.local
+node_modules/
 __pycache__/
 *.pyc
 .pytest_cache/
+.venv/
+venv/
+
+# Plugin runtime state
 .acv/
+*.log
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Env
+.env
+.env.local

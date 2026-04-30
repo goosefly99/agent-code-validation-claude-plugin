@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "description": "Atomic baseline snapshot: hash tests/** AND production files, initialize provenance log, boot MCP sandbox pool. Withholds primary-agent Edit/Write/Bash until .acv/session-start.json commits.",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session_start.mjs",
+        "timeout": 30
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "description": "Deny writes to tests/** allowlist when caller is not the test-author subagent. Emits hookSpecificOutput.permissionDecision = 'deny'.",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_tool_use.mjs",
+        "timeout": 5
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "description": "Scoped pyright/tsc --strict + ruff/eslint + AST-based Reward-Hacking Watchdog on production writes. On SUSPICIOUS, emit decision:block + reason (feedback — the tool already ran).",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post_tool_use.mjs",
+        "timeout": 10
+      }
+    ],
+    "Stop": [
+      {
+        "description": "Invoke Auditor subagent in a clean sandbox. Emit decision:block + reason when verification receipt is missing or Verification-Quality Score below user floor. Omit decision to allow.",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs",
+        "timeout": 120
+      }
+    ],
+    "SubagentStop": [
+      {
+        "description": "Auditor re-runs against the stopped subagent's outputs. Emit decision:block + reason when subagent claims success without receipt.",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent_stop.mjs",
+        "timeout": 120
+      }
+    ],
+    "PreCompact": [
+      {
+        "description": "Refuse compaction while unresolved FAIL or SUSPICIOUS audit verdicts exist in the session. Emits decision:block.",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.mjs",
+        "timeout": 5
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+# Build artifacts (rebuilt inside the image)
+dist/
+node_modules/
+
+# Test files (image is runtime-only)
+src/**/*.test.ts
+**/*.test.ts
+tests/
+
+# VCS / editor / OS
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+
+# Logs and runtime state
+*.log
+.acv/
+
+# Local docs not needed at runtime
+README.md

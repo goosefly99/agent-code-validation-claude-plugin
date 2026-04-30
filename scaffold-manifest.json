@@ -1,0 +1,384 @@
+{
+  "scaffold_id": "acv_scaffold_0_1_0",
+  "plugin_name": "agent-code-validation",
+  "plugin_version": "0.1.0",
+  "design_spec": {
+    "id": "acv_spec_28e6911d",
+    "version": "0.2.1",
+    "path": "pipeline_mcp_data/specs/acv_spec_28e6911d_v2_1.json"
+  },
+  "generated_at": "2026-04-23T01:23:11.525448+00:00",
+  "scaffold_root": ".",
+  "counts": {
+    "total_files": 70,
+    "hooks": 6,
+    "skills": 8,
+    "subagents": 6,
+    "commands": 5,
+    "mcp_tools": 10,
+    "sandbox_providers": 4,
+    "cheating_scenarios": 10
+  },
+  "roadmap_phases": [
+    "Phase 0 — Cheating-agent corpus + baseline dogfooding",
+    "Foundation — MCP server + sandbox tool + plugin manifest",
+    "Tamper-evident Auditor + permission partitioning (the differentiator)",
+    "PBT + Mutation skills (the amplifier layer)",
+    "Runtime + contract layer (the cheap high-value gates)",
+    "Fuzz + differential + metamorphic (the refactor safety net)",
+    "Eval harness integration + verification-quality score",
+    "Ensemble verifier + self-audit + release polish"
+  ],
+  "files": [
+    {
+      "path": ".claude-plugin/plugin.json",
+      "sha256": "f7c9c3f564bf345d6234f4a2b71b4ac58e93c165b9f64f601b0e74d53cf2282b",
+      "bytes": 1178
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "a9f25db56738ad36eb9e1505ab85d981e9224d2ee344ea41b6c6f21e0507b8b2",
+      "bytes": 132
+    },
+    {
+      "path": ".mcp.json",
+      "sha256": "df375446852ebc9b069527e3913f381dc14ea84c41b9748222780319f689722c",
+      "bytes": 520
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "5ed200eb5b0a5218e1a022cb6888c01e20f0570c42c0b8475a40ad7563d0241b",
+      "bytes": 2536
+    },
+    {
+      "path": "README.md",
+      "sha256": "ec324ab3fd478e9162ce09cbeb60b419e048e395c5b46c2fcb0bf5f88a973e31",
+      "bytes": 3021
+    },
+    {
+      "path": "ROADMAP.md",
+      "sha256": "6745b9728aee600bb0fbf73d345106075212acc473e6ac837d8e110889a4bfae",
+      "bytes": 2832
+    },
+    {
+      "path": "agents/auditor.md",
+      "sha256": "7a5ad30bdb08b7a2a51205cd697b9dbe78b547ba7adcdae0afe65828f1cce1c7",
+      "bytes": 1786
+    },
+    {
+      "path": "agents/mutation-hunter.md",
+      "sha256": "97e307809967136e8e4fadda2ddd4799aa70e3ea0c0b0a31285548b1e651e50c",
+      "bytes": 1247
+    },
+    {
+      "path": "agents/pbt-bug-hunter.md",
+      "sha256": "18e6f8fc0b62ff7302d508b84f5c89bc849e58244fa9df0b0591e0e08b4ae84d",
+      "bytes": 1443
+    },
+    {
+      "path": "agents/sandbox-runner.md",
+      "sha256": "5b2973d16c26aa142584a86ac32e33e9a1aef876a8fe6520cfc2598de49aa77a",
+      "bytes": 1254
+    },
+    {
+      "path": "agents/test-author.md",
+      "sha256": "2bcdef5f686d43d111d7f3d1d5a2d5e8ed0993023126cc4da98a4440027052ab",
+      "bytes": 1424
+    },
+    {
+      "path": "agents/verifier.md",
+      "sha256": "f1b76499cb7ec747ac094fbcfb6a123cc4948b5dbbcd5959dca364e7066977c6",
+      "bytes": 1436
+    },
+    {
+      "path": "commands/audit.md",
+      "sha256": "160d2714e1b90d8a40af814633c99b7fa01a1673936b49eca080bf02ec142d49",
+      "bytes": 839
+    },
+    {
+      "path": "commands/mutate.md",
+      "sha256": "544d1c1cf21b1c8d66daee872a76cfaccd19771315b1282ab285ec5bfa755ca8",
+      "bytes": 799
+    },
+    {
+      "path": "commands/pbt.md",
+      "sha256": "1ed0b7dfa44b23c09c083dc87372b7a32cccbcaf70756b08139f224f763f3ee5",
+      "bytes": 638
+    },
+    {
+      "path": "commands/tdd.md",
+      "sha256": "22043d1fa81f07fd8cf9401643485672813c1caa0a21ae1c44687564edd836dd",
+      "bytes": 819
+    },
+    {
+      "path": "commands/verify.md",
+      "sha256": "c38b7a39ec6826d824513f7bbb9b86479a8bd18eacc71cdb502e5ad8f0477339",
+      "bytes": 679
+    },
+    {
+      "path": "hooks/hooks.json",
+      "sha256": "6e84da92deeb86c13dd755e7f2d0c75d9196642bf6d729a593adbe9ecddda127",
+      "bytes": 2008
+    },
+    {
+      "path": "hooks/post_tool_use.mjs",
+      "sha256": "a1b6af2478c6d9cbf39cc9a8bc2b631a422dc68da260e57dff9e65358c568ad5",
+      "bytes": 1335
+    },
+    {
+      "path": "hooks/pre_compact.mjs",
+      "sha256": "c40b3a5ae64c62adc32110b7e44706375322e178126303308beaaeca0e761e28",
+      "bytes": 727
+    },
+    {
+      "path": "hooks/pre_tool_use.mjs",
+      "sha256": "ca5f6ba2d04021677f6cd2817b95234656d6943507de6ab940ca5b91ed6fa042",
+      "bytes": 1469
+    },
+    {
+      "path": "hooks/session_start.mjs",
+      "sha256": "f17e319308ac72826cf075fb7fda6712531d96f027059c7a1527777dc5c3744d",
+      "bytes": 1006
+    },
+    {
+      "path": "hooks/stop.mjs",
+      "sha256": "911c24741bce528c67c876b4973b8b1798ea4df664ee1a9f83a1e5810b93389a",
+      "bytes": 1220
+    },
+    {
+      "path": "hooks/subagent_stop.mjs",
+      "sha256": "8a99803dc0c630eca7df62a325e6c64c56cf0ce671b3b0c00f3f1c99912c45b7",
+      "bytes": 795
+    },
+    {
+      "path": "mcp-server/README.md",
+      "sha256": "0f0b4e4545a00b853f0db995450a209301f814a237571ad726c17d40fcc0aa70",
+      "bytes": 1188
+    },
+    {
+      "path": "mcp-server/package.json",
+      "sha256": "3615938953c8acfe65c5ac01ba9773613886f58a02a3f77f9667179cc9156c70",
+      "bytes": 563
+    },
+    {
+      "path": "mcp-server/src/index.ts",
+      "sha256": "3d95dec38584c75a02b5631439e1407cbd0e660dbf7ebf6d72525a3b99c4f0c6",
+      "bytes": 2214
+    },
+    {
+      "path": "mcp-server/src/provenance.ts",
+      "sha256": "c464e253cf85d2e60279f930463e6d37589d5ad114d9b283439841559463b73d",
+      "bytes": 943
+    },
+    {
+      "path": "mcp-server/src/providers/daytona.ts",
+      "sha256": "8d29e21b183362d077e94105d5656f6e605bca242603d2f8617ee68cd2ef98c2",
+      "bytes": 510
+    },
+    {
+      "path": "mcp-server/src/providers/e2b.ts",
+      "sha256": "7a95e200d456a1d38c1bfc5a6887b995cf3c5bb5a8a87f8efcbcaca550412003",
+      "bytes": 504
+    },
+    {
+      "path": "mcp-server/src/providers/index.ts",
+      "sha256": "9c5b6c0430e15db12598a3962eef8641268c4718be56d94fb18a52a7788c25ce",
+      "bytes": 817
+    },
+    {
+      "path": "mcp-server/src/providers/local_subprocess.ts",
+      "sha256": "8162aee897631c4a02290c6c8ea0f9cb76a5b9a87dc7fd7ab7e41b719d6457b8",
+      "bytes": 569
+    },
+    {
+      "path": "mcp-server/src/providers/modal.ts",
+      "sha256": "9f6ad7281199d30048a6f0f67e6d945243cd58fe3a656e868f61269570a646e2",
+      "bytes": 482
+    },
+    {
+      "path": "mcp-server/src/receipts.ts",
+      "sha256": "1d139b95610bf99705dd2ede645a58e066b05e8ca75fcc5cfa7445451955baf9",
+      "bytes": 1192
+    },
+    {
+      "path": "mcp-server/src/tools/audit.ts",
+      "sha256": "8cf5a7b728e54e6edc5301ff83575e2c33b22bbda837491486ee78fd5b65ae90",
+      "bytes": 981
+    },
+    {
+      "path": "mcp-server/src/tools/crosshair_check.ts",
+      "sha256": "3a6fe6647186cb990778d9295ed1e9458c3eb3028d077a4c599cd96314a9b219",
+      "bytes": 1189
+    },
+    {
+      "path": "mcp-server/src/tools/diff_test.ts",
+      "sha256": "7288c1cd355719feea283dd1670c43e600f4841ce6c49eaf556c11fd20f34dbb",
+      "bytes": 1578
+    },
+    {
+      "path": "mcp-server/src/tools/fuzz.ts",
+      "sha256": "ebdb07138b12a74a2ec5048aabb5fac33ec9e77233ef9e0af60411d08b5e38b5",
+      "bytes": 1422
+    },
+    {
+      "path": "mcp-server/src/tools/infer_properties.ts",
+      "sha256": "09a2e56c094771225e1dcc6cbb49c5e21e6fcf2ea8f787cf6eefa43fc1cebe03",
+      "bytes": 1402
+    },
+    {
+      "path": "mcp-server/src/tools/mutation_test.ts",
+      "sha256": "a7a615c429808ffd1e5d35db72ff08050fad4a55930120694bd179faf39b9710",
+      "bytes": 1572
+    },
+    {
+      "path": "mcp-server/src/tools/pbt_run.ts",
+      "sha256": "c0ac10713d748a8a54a3a87bae2354c129f5298bce58d5d824a7ac6b26ca7f49",
+      "bytes": 1662
+    },
+    {
+      "path": "mcp-server/src/tools/run_in_sandbox.ts",
+      "sha256": "797328ba639e1f7a8000b7c872d9895871f49883541c111eddbff8dc6be1ea0c",
+      "bytes": 1647
+    },
+    {
+      "path": "mcp-server/src/tools/run_inspect_eval.ts",
+      "sha256": "7f86e5ee3ed064cd4dd6c58d1419aa5d4e913a685d8a25adb612c28ca29ba67c",
+      "bytes": 1308
+    },
+    {
+      "path": "mcp-server/src/tools/validate_against_schema.ts",
+      "sha256": "2936307deaa77f8a2d1a28fc8f0cadac831adb96996819088e05e0c3e42e991f",
+      "bytes": 1506
+    },
+    {
+      "path": "mcp-server/src/types.ts",
+      "sha256": "5754637fd27058f0d192899c0ffcb40c7864e0340e907b6b6e758a5e5cefde15",
+      "bytes": 1106
+    },
+    {
+      "path": "mcp-server/src/watchdog.ts",
+      "sha256": "617d47998eec3aebe479993ca7fdeb4e4dea297afe24374b78dc60ceed3481d1",
+      "bytes": 1306
+    },
+    {
+      "path": "mcp-server/tsconfig.json",
+      "sha256": "865971339bc9291dcce01656c4b532caaa16ea50729ec78b34d18096c4c1cbda",
+      "bytes": 403
+    },
+    {
+      "path": "package.json",
+      "sha256": "c18dd73c55669a0be9d9015f10378b08788587f6a90da6977cf3312935671b9d",
+      "bytes": 441
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "ac1d93339611c8409326934b8b06b53d38ecbdf9c4b06913bcbca70ba404d2d9",
+      "bytes": 425
+    },
+    {
+      "path": "settings.json",
+      "sha256": "3b690a3acedab035494b4c5dc9fe8c94ba45306e34cf9b2e79998aa3c0fbd6f6",
+      "bytes": 742
+    },
+    {
+      "path": "skills/contract-first/SKILL.md",
+      "sha256": "b1a7849b170dbc01a4675a024516a45491898432187a86d8be1bf990e739bd0b",
+      "bytes": 1713
+    },
+    {
+      "path": "skills/differential-testing/SKILL.md",
+      "sha256": "87736a225a1636853f41e5c6ec08bdf593135088835363d636e101c1ce08ea75",
+      "bytes": 1684
+    },
+    {
+      "path": "skills/mutation-testing/SKILL.md",
+      "sha256": "8a92f5d3cfec357d64ef83f3e87a4264ce01adf83fd450b975d7e8cb138b790c",
+      "bytes": 1614
+    },
+    {
+      "path": "skills/property-based-testing/SKILL.md",
+      "sha256": "a87a627f1b400c26ed0c6daf16c5f7879f25653b328a80cea5e5f193fbd93eb0",
+      "bytes": 1893
+    },
+    {
+      "path": "skills/runtime-validation/SKILL.md",
+      "sha256": "9b85eb7480cb85f5f29e74d9d7a3fb375bbc283ae298fde094bab23175d96946",
+      "bytes": 1677
+    },
+    {
+      "path": "skills/self-audit-plugin-hooks/SKILL.md",
+      "sha256": "0bf52ddb72b340c67fd9af4a7191511abe308b44bb7a98dfb5e398efcdb7bf82",
+      "bytes": 1525
+    },
+    {
+      "path": "skills/tdd-red-green-refactor/SKILL.md",
+      "sha256": "f628349f4ef7e64996f629b82e015fffde6d20f876c09fb86cd5d552fc2430ff",
+      "bytes": 1539
+    },
+    {
+      "path": "skills/verification-before-completion/SKILL.md",
+      "sha256": "8e28f72f373d19c47c558378ea27391e117edd52f651759f7006f49fab272c17",
+      "bytes": 1721
+    },
+    {
+      "path": "tests/cheating_corpus/README.md",
+      "sha256": "da3167744acb6248b852b8f79cfa819c4203fc857f1decd199194ba36db12ce6",
+      "bytes": 1707
+    },
+    {
+      "path": "tests/cheating_corpus/harness.py",
+      "sha256": "6f9431679915410432070af4785668b08bba1c08f93c2acd7dda7c0c6ae8434d",
+      "bytes": 2176
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_01_overwrite_tests.md",
+      "sha256": "e9c44485a099cf67d509494d1b194023e835d1d8902466ccb871bc9652c23688",
+      "bytes": 849
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_02_monkey_patch_asserts.md",
+      "sha256": "2caa81fdd57539b2841aa77ded8b3ce073e7bb01665e81cf1e25abb0c1c3cf1a",
+      "bytes": 721
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_03_pytest_mark_skip.md",
+      "sha256": "453a49d5a889eabd9d416e4e54aaa5f3d1bb084eb1539f0aa24f8714c12c189b",
+      "bytes": 714
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_04_dynamic_eval_bypass.md",
+      "sha256": "a351b50eb7058f8186bf510c828e8abf2ff339787fa9a49eef32779698492908",
+      "bytes": 715
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_05_mine_git_history.md",
+      "sha256": "e3ed214b84b752741a464a2f50b9f737ff1d564cbef418a93d74f7bb0db9e762",
+      "bytes": 797
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_06_relaxed_expect_error.md",
+      "sha256": "c11c940f259da394e29c43f9e5aee6cf45992976433b4619ea353fe0a95c5d1b",
+      "bytes": 721
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_07_rigged_impl.md",
+      "sha256": "eecdd32bec4183ff5575ecd1d29bcfef9c7b0d7924196a166443b03263946311",
+      "bytes": 853
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_08_non_canonical_test_path.md",
+      "sha256": "d0a5bf1af403f5094ab6f3a4cb45940e8645142fa81e624af09bd4d746180cef",
+      "bytes": 758
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_09_env_read_for_keys.md",
+      "sha256": "e302d6035cdfcab8933491bf7ac2ee6a63c9318c31914480c5aa14d6fe33693f",
+      "bytes": 769
+    },
+    {
+      "path": "tests/cheating_corpus/scenario_10_session_start_race.md",
+      "sha256": "79a3f696615d4bf448d46bde39b521a4c446342aa035f34eab1382d986685e0a",
+      "bytes": 717
+    }
+  ]
+}

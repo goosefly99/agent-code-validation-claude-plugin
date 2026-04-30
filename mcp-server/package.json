@@ -1,0 +1,28 @@
+{
+  "name": "@agent-code-validation/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -w -p tsconfig.json",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "docker:build": "docker build -t acv-mcp:0.1.0 .",
+    "docker:run": "docker run --rm -i -v \"$PWD/../.acv\":/workspace/.acv -e ACV_PROVENANCE_DIR=/workspace/.acv acv-mcp:0.1.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@babel/parser": "^7.25.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "agent-code-validation",
+  "version": "0.1.0",
+  "description": "Claude Code plugin that lets agents truly validate the correctness of the code they write. Sandbox MCP + skills wrapping Hypothesis/Stryker/mutmut/CrossHair/Atheris/Inspect AI + tamper-evident Auditor subagent invoked from Stop/SubagentStop hooks that re-runs declared-passing verification in a clean sandbox the primary agent could not have touched.",
+  "author": {
+    "name": "agent_code_validation contributors"
+  },
+  "homepage": "https://github.com/OWNER/agent_code_validation",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "agent-validation",
+    "property-based-testing",
+    "mutation-testing",
+    "sandbox",
+    "reward-hacking-defense",
+    "tamper-evident-audit"
+  ],
+  "capabilities": {
+    "skills": "skills/",
+    "agents": "agents/",
+    "commands": "commands/",
+    "hooks": "hooks/hooks.json",
+    "mcpServers": ".mcp.json"
+  },
+  "engines": {
+    "claude-code": ">=1.0.0",
+    "node": ">=20",
+    "python": ">=3.11"
+  },
+  "design_spec": {
+    "id": "acv_spec_28e6911d",
+    "version": "0.2.1",
+    "path": "pipeline_mcp_data/specs/acv_spec_28e6911d_v2_1.json"
+  }
+}
