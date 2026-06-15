@@ -2,6 +2,9 @@
 research/
 pipeline_mcp_data/
 
+# Local planning / working docs — not part of the shipped plugin.
+docs/superpowers/
+
 # Build
 dist/
 build/
