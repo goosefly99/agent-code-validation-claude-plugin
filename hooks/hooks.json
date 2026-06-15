@@ -2,7 +2,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "description": "Atomic baseline snapshot: hash tests/** AND production files, initialize provenance log, boot MCP sandbox pool. Withholds primary-agent Edit/Write/Bash until .acv/session-start.json commits.",
+        "description": "Opt-in baseline: when the project is activated (acv.config.json present), ensures .acv/ is gitignored, then writes an HMAC-signed snapshot of git-tracked files to .acv/session-start.json. Inert (writes nothing) when not activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session_start.mjs",
         "timeout": 30
       }
@@ -10,7 +10,7 @@
     "PreToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
-        "description": "Deny writes to tests/** allowlist when caller is not the test-author subagent. Emits hookSpecificOutput.permissionDecision = 'deny'.",
+        "description": "Denies writes to test files (per settings.test_path_allowlist) unless the caller is the test-author subagent. Emits hookSpecificOutput.permissionDecision = 'deny'.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_tool_use.mjs",
         "timeout": 5
       }
@@ -18,28 +18,28 @@
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
-        "description": "Scoped pyright/tsc --strict + ruff/eslint + AST-based Reward-Hacking Watchdog on production writes. On SUSPICIOUS, emit decision:block + reason (feedback — the tool already ran).",
+        "description": "[PLACEHOLDER — not yet implemented, Phase 3] Will run scoped pyright/tsc + ruff/eslint + an AST reward-hacking watchdog on production writes and emit decision:block on SUSPICIOUS. Currently a no-op.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post_tool_use.mjs",
         "timeout": 10
       }
     ],
     "Stop": [
       {
-        "description": "Invoke Auditor subagent in a clean sandbox. Emit decision:block + reason when verification receipt is missing or Verification-Quality Score below user floor. Omit decision to allow.",
+        "description": "[PLACEHOLDER — not yet implemented, Phase 3] Will invoke the Auditor in a clean sandbox and emit decision:block when the verification receipt is missing or the Verification-Quality Score is below the configured floor. Currently a no-op.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs",
         "timeout": 120
       }
     ],
     "SubagentStop": [
       {
-        "description": "Auditor re-runs against the stopped subagent's outputs. Emit decision:block + reason when subagent claims success without receipt.",
+        "description": "[PLACEHOLDER — not yet implemented, Phase 3] Will re-run the Auditor against the stopped subagent's outputs and block on a success claim with no valid receipt. Currently a no-op.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent_stop.mjs",
         "timeout": 120
       }
     ],
     "PreCompact": [
       {
-        "description": "Refuse compaction while unresolved FAIL or SUSPICIOUS audit verdicts exist in the session. Emits decision:block.",
+        "description": "[PLACEHOLDER — not yet implemented, Phase 3] Will refuse compaction while unresolved FAIL or SUSPICIOUS audit verdicts exist in the session. Currently a no-op.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.mjs",
         "timeout": 5
       }
