@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -163,16 +163,60 @@ describe("provenance log", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Note on "log throws if not initialized":
+// Opt-in / lazy behavior — the fix for ".acv litter in every project".
+// When the project is not activated (active:false), provenance must write
+// nothing and must not create a .acv/ directory. When active, the directory
+// is created lazily on the first write (never eagerly at init).
+// ---------------------------------------------------------------------------
+
+describe("provenance opt-in (active flag)", () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), "acv-prov-optin-"));
+  });
+
+  afterEach(() => {
+    try {
+      rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // best-effort
+    }
+  });
+
+  it("log is a no-op and creates nothing when active:false", async () => {
+    const acv = join(dir, "nested", ".acv");
+    await initProvenance(acv, { active: false });
+    await log(makeEntry());
+    expect(existsSync(join(acv, "provenance.jsonl"))).toBe(false);
+    expect(existsSync(acv)).toBe(false); // not even the directory
+  });
+
+  it("does not create the directory at init time (lazy)", async () => {
+    const acv = join(dir, "nested", ".acv");
+    await initProvenance(acv, { active: true });
+    expect(existsSync(acv)).toBe(false);
+  });
+
+  it("lazily creates the directory and writes when active:true", async () => {
+    const acv = join(dir, "nested", ".acv");
+    await initProvenance(acv, { active: true });
+    await log(makeEntry({ tool: "lazy" }));
+    const raw = readFileSync(join(acv, "provenance.jsonl"), "utf-8");
+    expect((JSON.parse(raw.trim()) as ProvenanceEntry).tool).toBe("lazy");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Note on "log when not initialized":
 //
 // provenance.ts uses a module-level `logPath` variable. Because ESM module
 // state is shared across all tests in the same worker process, and because
 // the `beforeEach` above calls `initProvenance()` (which sets `logPath`),
 // there is no safe way to reset logPath to null within this test suite
-// without modifying provenance.ts (which is out of scope for P2.6).
+// without modifying provenance.ts.
 //
-// The un-initialized throw path is covered by code inspection.
-// A dedicated worker isolation test (e.g., with vitest's `--isolate` flag
-// or a separate `describe.concurrent` runner) could exercise it, but is
-// left for a future hardening pass.
+// log() is intentionally a silent no-op when logPath is null OR the project is
+// inactive (never throws) — provenance must never crash a hook or the server.
+// The active:false no-op path is exercised by the "provenance opt-in" suite above.
 // ---------------------------------------------------------------------------

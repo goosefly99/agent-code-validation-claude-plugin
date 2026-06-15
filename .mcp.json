@@ -1,29 +1,13 @@
 {
   "mcpServers": {
     "acv-mcp": {
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-i",
-        "-v",
-        "${CLAUDE_PROJECT_DIR}/.acv:/workspace/.acv",
-        "-e",
-        "ACV_PROVENANCE_DIR=/workspace/.acv",
-        "-e",
-        "ACV_SANDBOX_PROVIDER_PREFERENCE",
-        "-e",
-        "ACV_ALLOW_LOCAL_FALLBACK",
-        "-e",
-        "ACV_SESSION_ID",
-        "acv-mcp:0.1.0"
-      ],
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js"],
       "env": {
-        "ACV_PROVENANCE_DIR": "${CLAUDE_PROJECT_DIR}/.acv",
-        "ACV_SANDBOX_PROVIDER_PREFERENCE": "e2b,daytona,modal,docker,local",
+        "ACV_SANDBOX_PROVIDER_PREFERENCE": "docker,local",
         "ACV_ALLOW_LOCAL_FALLBACK": "true"
       },
-      "description": "Single MCP server (containerized) owning all sandbox/test-runner tools. Build with `npm -w mcp-server run docker:build` before first use. Primary agent sees only the tool surface; sandbox credentials never leave this container's PID namespace (T1 mitigation). Provenance dir is bind-mounted at /workspace/.acv so logs persist on the host."
+      "description": "Stdio MCP server owning all sandbox/test-runner tools. Runs as a host Node process launched via ${CLAUDE_PLUGIN_ROOT} (which Claude Code expands at config-parse time, unlike ${CLAUDE_PROJECT_DIR}). The server resolves its provenance dir from CLAUDE_PROJECT_DIR at runtime and writes nothing unless the project is activated (acv.config.json present). Build once with `npm -w mcp-server run build`. The docker sandbox provider still shells out to `docker run` to isolate target code; the MCP host itself no longer needs a container."
     }
   }
 }
