@@ -1,3 +1,8 @@
+# ACTIVATION: move this file to `.github/workflows/ci.yml` to enable GitHub
+# Actions. It is staged here at `ci/ci.yml` because the automation that authored
+# it lacked the GitHub `workflow` OAuth scope required to push under
+# `.github/workflows/`. Run, with workflow-scoped credentials:
+#     git mv ci/ci.yml .github/workflows/ci.yml && git commit && git push
 name: CI
 on:
   push:
