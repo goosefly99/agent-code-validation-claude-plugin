@@ -19,6 +19,14 @@ never sees them (mitigates T1).
 | `run_inspect_eval` | Delegate Inspect AI run to Sandbox-Runner | 7 |
 | `audit` | Read current Auditor receipts + return verdict | 3 |
 
+> **Backend status:** `run_in_sandbox` and `audit` are functional. The
+> language-toolchain tools (`pbt_run`, `mutation_test`, `crosshair_check`,
+> `fuzz`, `infer_properties`, `diff_test`, `validate_against_schema`,
+> `run_inspect_eval`) depend on a Python/JS toolchain that runs **inside the
+> sandbox provider's execution environment**, not on the MCP host. That backend
+> wiring is not yet complete; those tools should return a clear "toolchain
+> unavailable" error rather than silently passing.
+
 ## Sandbox providers
 
 Order resolved by `ACV_SANDBOX_PROVIDER_PREFERENCE` (first healthy wins):
@@ -36,17 +44,23 @@ without WSL ("Docker-backed local fallback is the escape hatch when WSL is
 unavailable") and the data-residency-safe default for GDPR-scope projects
 (no source-code egress to managed clouds).
 
-## Build (TypeScript)
+## Build (default — this is how `.mcp.json` runs the server)
+
+`.mcp.json` launches the server as a host **Node process over stdio**
+(`node ${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js`). Build `dist/` once
+before first use:
 
 ```
 npm install
-npm run build
+npm -w mcp-server run build
 ```
 
-## Build (Docker image)
+## Build (optional — Docker image for the DooD sandbox path)
 
-The `.mcp.json` in this plugin launches the server via `docker run --rm -i`
-by default. Build the image once before first use:
+A Docker image is **not** used to launch the server by default. It is only
+needed for the advanced Docker-out-of-Docker scenario below (running the MCP
+server itself inside a container so it can use the `docker` sandbox provider
+from there). Build it with:
 
 ```
 npm run docker:build           # builds dist/ then `docker build -t acv-mcp:0.1.0 .`
@@ -60,12 +74,17 @@ The image:
 - `ENTRYPOINT` is `node dist/index.js`, so `docker run -i acv-mcp:0.1.0`
   behaves identically to `node dist/index.js`
 
-Bind-mount the host `.acv` directory so provenance and receipts survive
-container exits — already wired up in the plugin's `.mcp.json`.
+When running the server in a container you can bind-mount the host `.acv`
+directory so provenance and receipts survive container exits. The **default
+stdio launch is not containerized**, so no bind-mount is involved — the host
+Node process writes `.acv/` directly under `CLAUDE_PROJECT_DIR` (and only when
+the project is activated via `acv.config.json`).
 
 ## Running the server inside Docker AND using docker as a sandbox provider
 
-This is **Docker-out-of-Docker (DooD)**. The MCP container needs:
+This is an **optional, advanced** deployment — the default launch is the host
+Node stdio process above, not a container. **Docker-out-of-Docker (DooD)**
+runs the MCP server itself in a container; that container needs:
 1. The host docker socket mounted in: `-v /var/run/docker.sock:/var/run/docker.sock`
 2. A `docker` CLI present in the image. The default `acv-mcp:0.1.0` does
    NOT bundle the CLI to keep the attack surface small. To opt in:
@@ -87,7 +106,10 @@ returns false and resolution falls through to `local`.
 
 Every sandbox spawn is logged to `${ACV_PROVENANCE_DIR}/provenance.jsonl`. Every
 verification emits an HMAC-signed receipt to `${ACV_PROVENANCE_DIR}/receipts/`.
-Signing key is generated at SessionStart and held only in this process.
+The signing key is written at SessionStart to a gitignored, 0600
+`.acv/.session-key` and is **shared** between this server (which signs receipts)
+and the hooks (which verify them) — so the Stop hook can reject tampered
+receipts. Provenance/receipts are written only when the project is activated.
 
 ## Container hardening defaults (docker provider)
 

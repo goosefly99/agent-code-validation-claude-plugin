@@ -19,6 +19,9 @@ venv/
 .acv/
 *.log
 
+# CI artifact (cheating-corpus catch-rate report)
+/corpus.json
+
 # Editor / OS
 .vscode/
 .idea/

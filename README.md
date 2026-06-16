@@ -31,31 +31,34 @@ claude plugin install agent-code-validation
 npm install                                          # installs root + mcp-server workspaces
 npm run build                                        # tsc compile
 npm -w mcp-server run test                           # vitest unit tests (incl. docker provider; daemon-needing tests self-skip)
-python tests/cheating_corpus/harness.py              # cheating-agent corpus (~40% catch rate at v0.1.0)
+python tests/cheating_corpus/harness.py              # cheating-agent corpus (8/10 = 80% catch rate at v0.1.0)
+node tests/smoke/mcp_handshake.mjs                   # MCP stdio handshake — asserts all 10 tools
 node tests/smoke/e2e_run_in_sandbox.mjs              # end-to-end MCP tool round-trip
 ```
 
-### Docker build (default for `.mcp.json`)
+### Build the MCP server
 
-The plugin's `.mcp.json` launches the MCP server inside a container so
-sandbox credentials live in a separate PID namespace from the primary
-agent's Bash tool (T1 mitigation). Build the image once before first use:
+`.mcp.json` launches the MCP server as a host **Node process over stdio**
+(`node ${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js`, a path Claude Code
+expands). Build it once before first use:
 
 ```bash
-npm run docker:build           # builds dist/ then `docker build -t acv-mcp:0.1.0 mcp-server`
+npm -w mcp-server run build      # tsc → mcp-server/dist/
 ```
 
-If you'd rather run the server as native Node — useful while iterating —
-swap the `command` block in `.mcp.json` back to:
+A Docker image (`acv-mcp:0.1.0`) is also available but is **optional** — it is
+only needed if you want to run the MCP server itself inside a container and use
+the `docker` sandbox provider from there (Docker-out-of-Docker). See
+`mcp-server/README.md` for that advanced workflow. The MCP host is **not**
+containerized by default.
 
-```json
-"command": "node",
-"args": ["${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js"]
-```
+### Activation (opt-in)
 
-See `mcp-server/README.md` for the full Docker workflow including
-Docker-out-of-Docker if you want the in-container server to also use the
-`docker` sandbox provider.
+The plugin is **inert until you activate it** for a project: copy
+`acv.config.example.json` to `acv.config.json` at your project root. Until then
+it writes nothing to your repo. When active, runtime state lives under a
+gitignored `.acv/` directory (the plugin adds `.acv/` to your `.gitignore`
+automatically before writing anything).
 
 Add to your Claude Code plugin config:
 
@@ -83,19 +86,24 @@ Every Claude Code plugin can lint and run tests. The differentiator here is
 1. **Permission partitioning.** The primary agent cannot write to `tests/**`.
    The `test-author` subagent is the only legitimate channel, and it must pass
    the Meta ACH filter pipeline (build → pass → coverage → mutation-kill).
-2. **Tamper-evident Auditor.** Stop hook invokes an Auditor subagent in a clean
-   sandbox the primary agent never touched. Auditor pins BOTH tests/ AND
-   production-file hashes to the session-start baseline, re-runs the suite, and
-   computes mutation-score-delta + property-count-delta. Any score-delta drop
-   triggers SUSPICIOUS — catching the rigged-impl-to-match-test attack (T2).
-3. **HMAC-signed receipts.** Signing key is generated at SessionStart and lives
-   only in the MCP server's memory. A tampered receipt is rejected by the Stop
-   hook — no receipt, no 'done'.
-4. **AST-based Watchdog.** PostToolUse runs an AST analyzer (not regex) that
-   catches dynamic dispatch bypass patterns: eval/exec, sys.modules writes,
-   decorator injection, assertion-lib monkey-patching.
+2. **Tamper-evident Auditor (implemented, opt-in).** When the project is
+   activated, the Stop hook blocks 'done' unless a valid, HMAC-verified Auditor
+   receipt exists, the Verification-Quality Score meets the configured floor,
+   and no mutation/property score-delta regressed — and it blocks on any
+   unresolved SUSPICIOUS watchdog finding. The `auditor` subagent re-runs the
+   declared-passing verification in a clean sandbox and signs the receipt.
+3. **HMAC-signed receipts.** The signing key is written at SessionStart to a
+   gitignored, 0600 `.acv/.session-key` and is **shared** between the MCP server
+   (which signs receipts) and the hooks (which verify them). A tampered receipt
+   fails HMAC validation and the Stop hook rejects it — no valid receipt, no 'done'.
+4. **AST-based Watchdog (implemented).** PostToolUse parses the written content
+   (AST for JS/TS via `@babel/parser`, conservative heuristics for Python) and
+   blocks SUSPICIOUS patterns — eval/exec, `builtins`/assertion monkey-patching,
+   degenerate implementations, and test logic smuggled outside `tests/**`.
 5. **Dogfood corpus.** 10 documented reward-hacking attacks from the 2025
-   literature. Plugin's catch rate is a published release metric (target ≥ 80%).
+   literature. Current catch rate: **8/10 (80%)**; CI fails below that floor.
+   (Scenarios 05 `mine_git_history` and 10 `session_start_race` are known
+   fixture-level gaps — see `tests/cheating_corpus/`.)
 
 ## Threat model (T1–T8)
 
