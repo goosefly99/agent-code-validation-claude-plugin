@@ -43,7 +43,7 @@ async function main() {
   const provenanceDir = process.env.ACV_PROVENANCE_DIR ?? join(projectDir, ".acv");
   const active = existsSync(join(projectDir, "acv.config.json"));
   await initProvenance(provenanceDir, { active });
-  await initReceiptsKey();
+  await initReceiptsKey(projectDir);
 
   const server = new Server(
     { name: "acv-mcp", version: "0.1.0" },

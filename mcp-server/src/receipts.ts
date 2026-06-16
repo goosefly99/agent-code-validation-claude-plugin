@@ -3,6 +3,8 @@
 // Mitigates T1 (credential recovery) + enables Stop hook to reject tampered receipts.
 
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { VerificationReceipt } from "./types.js";
 
 let signingKey: Buffer | null = null;
@@ -18,7 +20,20 @@ export function canonicalJson(value: unknown): string {
   return "{" + parts.join(",") + "}";
 }
 
-export async function initReceiptsKey(): Promise<void> {
+/**
+ * Load the shared session signing key from <projectDir>/.acv/.session-key so
+ * that hooks (which read the same file) can verify receipts. Falls back to a
+ * fresh in-memory key when the file is absent (e.g. project not activated).
+ */
+export async function initReceiptsKey(projectDir?: string): Promise<void> {
+  if (projectDir) {
+    try {
+      signingKey = readFileSync(join(projectDir, ".acv", ".session-key"));
+      return;
+    } catch {
+      /* no on-disk key → fall through to an ephemeral key */
+    }
+  }
   signingKey = randomBytes(32);
 }
 
