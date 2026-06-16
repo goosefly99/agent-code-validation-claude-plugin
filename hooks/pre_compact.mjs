@@ -1,18 +1,32 @@
 #!/usr/bin/env node
-// Hook stub — see plugin ROADMAP.md Phase mapping below.
-// Contract: read JSON event from stdin, write hook output JSON to stdout.
-// Exit 0 on success; non-zero = hook error (Claude Code surfaces to user).
+// PreCompact — refuse compaction while unresolved SUSPICIOUS verdicts exist,
+// because compaction would drop the evidence the user needs to fix them.
+// Opt-in gated; honors settings.pre_compact_block_on_suspicious.
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import { isActivated, resolveProjectDir, acvDir, readSettings } from "./_lib/acv.mjs";
 
-const event = JSON.parse(readFileSync(0, "utf-8"));
+JSON.parse(readFileSync(0, "utf-8")); // consume the event
 
-// Phase 8 (PreCompact hook).
-// Responsibilities (spec v0.2.1 Hooks Layer):
-//   - Read .acv/session.json for any unresolved FAIL or SUSPICIOUS audit verdicts.
-//   - Emit decision:"block" with reason if any exist — compaction would drop the
-//     evidence the user needs to fix the issue.
+function main() {
+  const projectDir = resolveProjectDir();
+  if (!isActivated(projectDir)) { console.log(JSON.stringify({})); return; }
+  const settings = readSettings(projectDir);
+  if (settings.pre_compact_block_on_suspicious === false) { console.log(JSON.stringify({})); return; }
 
-// TODO(Phase 8): read session audit state, block if unresolved issues.
-
-console.log(JSON.stringify({}));
+  const findingsPath = join(acvDir(projectDir), "findings.jsonl");
+  if (existsSync(findingsPath)) {
+    const unresolved = readFileSync(findingsPath, "utf-8").split(/\r?\n/).filter(Boolean)
+      .map((l) => { try { return JSON.parse(l); } catch { return null; } })
+      .filter((f) => f && f.resolved === false);
+    if (unresolved.length) {
+      console.log(JSON.stringify({ decision: "block",
+        reason: `agent_code_validation: ${unresolved.length} unresolved SUSPICIOUS finding(s); ` +
+          `compaction would drop this evidence. Resolve them first.` }));
+      return;
+    }
+  }
+  console.log(JSON.stringify({}));
+}
+try { main(); } catch { console.log(JSON.stringify({})); }

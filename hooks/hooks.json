@@ -18,28 +18,28 @@
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
-        "description": "[PLACEHOLDER — not yet implemented, Phase 3] Will run scoped pyright/tsc + ruff/eslint + an AST reward-hacking watchdog on production writes and emit decision:block on SUSPICIOUS. Currently a no-op.",
+        "description": "Runs the reward-hacking watchdog (AST for JS/TS, heuristics for Python) plus a path/content guard on production writes; emits decision:block with a reason on SUSPICIOUS patterns (eval/exec, assertion monkeypatching, degenerate impls, test logic outside the allowlist). Persists findings to .acv/findings.jsonl when activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post_tool_use.mjs",
         "timeout": 10
       }
     ],
     "Stop": [
       {
-        "description": "[PLACEHOLDER — not yet implemented, Phase 3] Will invoke the Auditor in a clean sandbox and emit decision:block when the verification receipt is missing or the Verification-Quality Score is below the configured floor. Currently a no-op.",
+        "description": "Tamper-evident gate: when the project is activated, blocks the stop if any unresolved SUSPICIOUS finding exists, or the Auditor verification receipt is missing/invalid, or the Verification-Quality Score is below the configured floor, or a score delta regressed. Inert when not activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs",
         "timeout": 120
       }
     ],
     "SubagentStop": [
       {
-        "description": "[PLACEHOLDER — not yet implemented, Phase 3] Will re-run the Auditor against the stopped subagent's outputs and block on a success claim with no valid receipt. Currently a no-op.",
+        "description": "Applies the Stop gate when a subagent stops: a success claim requires no unresolved SUSPICIOUS findings and a valid receipt. Inert when not activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent_stop.mjs",
         "timeout": 120
       }
     ],
     "PreCompact": [
       {
-        "description": "[PLACEHOLDER — not yet implemented, Phase 3] Will refuse compaction while unresolved FAIL or SUSPICIOUS audit verdicts exist in the session. Currently a no-op.",
+        "description": "Blocks compaction while unresolved SUSPICIOUS verdicts exist in .acv/findings.jsonl (honors pre_compact_block_on_suspicious). Inert when not activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.mjs",
         "timeout": 5
       }
