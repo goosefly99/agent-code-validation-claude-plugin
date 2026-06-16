@@ -3,45 +3,75 @@
     "SessionStart": [
       {
         "description": "Opt-in baseline: when the project is activated (acv.config.json present), ensures .acv/ is gitignored, then writes an HMAC-signed snapshot of git-tracked files to .acv/session-start.json. Inert (writes nothing) when not activated.",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session_start.mjs",
-        "timeout": 30
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session_start.mjs",
+            "timeout": 30
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
         "description": "Denies writes to test files (per settings.test_path_allowlist) unless the caller is the test-author subagent. Emits hookSpecificOutput.permissionDecision = 'deny'.",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_tool_use.mjs",
-        "timeout": 5
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_tool_use.mjs",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
         "description": "Runs the reward-hacking watchdog (AST for JS/TS, heuristics for Python) plus a path/content guard on production writes; emits decision:block with a reason on SUSPICIOUS patterns (eval/exec, assertion monkeypatching, degenerate impls, test logic outside the allowlist). Persists findings to .acv/findings.jsonl when activated.",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post_tool_use.mjs",
-        "timeout": 10
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post_tool_use.mjs",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [
       {
         "description": "Tamper-evident gate: when the project is activated, blocks the stop if any unresolved SUSPICIOUS finding exists, or the Auditor verification receipt is missing/invalid, or the Verification-Quality Score is below the configured floor, or a score delta regressed. Inert when not activated.",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs",
-        "timeout": 120
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs",
+            "timeout": 120
+          }
+        ]
       }
     ],
     "SubagentStop": [
       {
         "description": "Applies the Stop gate when a subagent stops: a success claim requires no unresolved SUSPICIOUS findings and a valid receipt. Inert when not activated.",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent_stop.mjs",
-        "timeout": 120
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent_stop.mjs",
+            "timeout": 120
+          }
+        ]
       }
     ],
     "PreCompact": [
       {
         "description": "Blocks compaction while unresolved SUSPICIOUS verdicts exist in .acv/findings.jsonl (honors pre_compact_block_on_suspicious). Inert when not activated.",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.mjs",
-        "timeout": 5
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.mjs",
+            "timeout": 5
+          }
+        ]
       }
     ]
   }
