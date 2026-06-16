@@ -2,7 +2,7 @@
 name: auditor
 description: Runs after Stop / SubagentStop in a clean MCP-provisioned sandbox; re-runs the declared-passing verification, compares to session-start baseline, emits HMAC-signed receipt
 model: opus
-tools: Read, Bash, acv-mcp tools
+tools: Read, Bash, mcp__acv-mcp__run_in_sandbox, mcp__acv-mcp__mutation_test, mcp__acv-mcp__pbt_run, mcp__acv-mcp__audit
 ---
 
 # Auditor subagent

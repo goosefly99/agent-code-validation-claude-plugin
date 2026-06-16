@@ -5,7 +5,7 @@
   "author": {
     "name": "agent_code_validation contributors"
   },
-  "homepage": "https://github.com/OWNER/agent_code_validation",
+  "homepage": "https://github.com/goosefly99/agent-code-validation-claude-plugin",
   "license": "MIT",
   "keywords": [
     "claude-code",
@@ -31,6 +31,6 @@
   "design_spec": {
     "id": "acv_spec_28e6911d",
     "version": "0.2.1",
-    "path": "pipeline_mcp_data/specs/acv_spec_28e6911d_v2_1.json"
+    "path": "spec/acv_spec_v2_1.json"
   }
 }

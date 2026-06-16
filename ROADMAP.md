@@ -8,23 +8,29 @@ populate.
 
 **Status: ✅ Done** — harness implemented, 10 scenarios + fixtures present, README + SCHEMA documented.
 **Populates:** `tests/cheating_corpus/` (scenarios + harness).
-**Ship metric:** catch rate published on v0.1.0 release notes. Current: 0.4 (4/10 — stubs for Phase 3–8 hooks account for the gap).
+**Ship metric:** catch rate published on v0.1.0 release notes. Current: **0.8 (8/10)** after Phase 3 wired the PostToolUse watchdog. Scenarios 05 (`mine_git_history`) and 10 (`session_start_race`) remain known fixture-level gaps (empty `expected_catches` / structural assertion that fails by construction) deferred to a later phase. CI enforces a ≥ 0.8 floor.
 
 ## Phase 2 — Foundation: MCP server + sandbox + manifest
 
-**Status: ✅ Done** — MCP server skeleton wired, run_in_sandbox tool functional via local provider, provenance + receipts modules done, SessionStart hook implements baseline snapshot. **Containerized:** the server itself now ships as a Docker image (`acv-mcp:0.1.0`) and `.mcp.json` launches it via `docker run --rm -i`, putting credential-bearing process in a separate PID namespace (T1 defense-in-depth). A first-class `docker` SandboxProvider is now implemented — it is the spec-mandated escape hatch for native Windows without WSL and the data-residency-safe default.
+**Status: ✅ Done** — MCP server skeleton wired, run_in_sandbox tool functional via local provider, provenance + receipts modules done, SessionStart hook implements baseline snapshot. **Launch:** `.mcp.json` runs the server as a host **Node stdio process** (`node ${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js`); build it with `npm -w mcp-server run build`. The MCP host is not containerized. **Opt-in:** the server (and every hook) writes nothing unless the project is activated via `acv.config.json`. A first-class `docker` SandboxProvider is implemented — it is the spec-mandated escape hatch for native Windows without WSL and the data-residency-safe default for isolating *target* code (distinct from how the MCP host itself launches). A Docker image of the server also exists but is optional (only for the Docker-out-of-Docker sandbox path).
 **Populates:** `mcp-server/src/index.ts`, `mcp-server/src/tools/run_in_sandbox.ts`,
 `mcp-server/src/providers/{e2b,daytona,modal,docker,local_subprocess}.ts`,
 `mcp-server/src/provenance.ts`, `mcp-server/src/receipts.ts`,
 `mcp-server/Dockerfile`, `mcp-server/.dockerignore`.
 **Ship:** `.claude-plugin/plugin.json` + `hooks/hooks.json` + `.mcp.json` v0.1.0,
-end-to-end `/verify` smoke test, `npm run docker:build` produces the runnable image.
+end-to-end `/verify` smoke test, `npm -w mcp-server run build` produces the runnable
+`dist/` (the canonical artifact); the optional Docker image is built by
+`npm run docker:build`.
 
 ## Phase 3 — Tamper-evident Auditor + permission partitioning
 
-**Populates:** `agents/auditor.md` impl, `hooks/{session_start,pre_tool_use,post_tool_use,stop,subagent_stop}.mjs`,
+**Status: ✅ Done** — all 6 hooks implemented (PostToolUse watchdog, Stop/SubagentStop
+receipt+findings gate, PreCompact); receipts signed with the shared on-disk
+`.acv/.session-key` so hooks can verify them; `audit` MCP tool reads + verifies
+receipts. Cheating-corpus catch rate **8/10 (80%)**.
+**Populates:** `agents/auditor.md` impl, `hooks/{session_start,pre_tool_use,post_tool_use,stop,subagent_stop,pre_compact}.mjs`,
 `mcp-server/src/watchdog.ts`, `skills/self-audit-plugin-hooks/`, `skills/verification-before-completion/`.
-**Ship:** 5 hooks live, cheating-agent integration test passes for scenarios 1-3.
+**Ship:** all hooks live (PreCompact landed early, ahead of its original Phase 8 slot); cheating-agent corpus catches scenarios 01-04, 06-09.
 
 ## Phase 4 — PBT + Mutation skills
 

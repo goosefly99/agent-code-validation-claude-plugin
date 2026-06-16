@@ -2,7 +2,7 @@
 name: verifier
 description: Optional cross-model ensemble verifier. Reads diff + Auditor evidence + VQ score → emits independent verdict + confidence. Read-only, never writes.
 model: opus
-tools: Read, acv-mcp tools
+tools: Read, mcp__acv-mcp__audit
 ---
 
 # Verifier subagent

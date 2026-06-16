@@ -1,7 +1,7 @@
 // Docker/Kata/Sysbox, ~90 ms cold start. Fastest managed backend.
 // Spec: components "MCP Server — acv-mcp" + risks T1 (cred isolation).
 
-import type { Sandbox, SandboxProvider } from "./index.js";
+import type { SandboxProvider } from "./index.js";
 
 export const provider: SandboxProvider = {
   id: "daytona",

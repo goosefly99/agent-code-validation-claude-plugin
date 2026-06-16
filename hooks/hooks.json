@@ -2,7 +2,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "description": "Atomic baseline snapshot: hash tests/** AND production files, initialize provenance log, boot MCP sandbox pool. Withholds primary-agent Edit/Write/Bash until .acv/session-start.json commits.",
+        "description": "Opt-in baseline: when the project is activated (acv.config.json present), ensures .acv/ is gitignored, then writes an HMAC-signed snapshot of git-tracked files to .acv/session-start.json. Inert (writes nothing) when not activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session_start.mjs",
         "timeout": 30
       }
@@ -10,7 +10,7 @@
     "PreToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
-        "description": "Deny writes to tests/** allowlist when caller is not the test-author subagent. Emits hookSpecificOutput.permissionDecision = 'deny'.",
+        "description": "Denies writes to test files (per settings.test_path_allowlist) unless the caller is the test-author subagent. Emits hookSpecificOutput.permissionDecision = 'deny'.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_tool_use.mjs",
         "timeout": 5
       }
@@ -18,28 +18,28 @@
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
-        "description": "Scoped pyright/tsc --strict + ruff/eslint + AST-based Reward-Hacking Watchdog on production writes. On SUSPICIOUS, emit decision:block + reason (feedback — the tool already ran).",
+        "description": "Runs the reward-hacking watchdog (AST for JS/TS, heuristics for Python) plus a path/content guard on production writes; emits decision:block with a reason on SUSPICIOUS patterns (eval/exec, assertion monkeypatching, degenerate impls, test logic outside the allowlist). Persists findings to .acv/findings.jsonl when activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post_tool_use.mjs",
         "timeout": 10
       }
     ],
     "Stop": [
       {
-        "description": "Invoke Auditor subagent in a clean sandbox. Emit decision:block + reason when verification receipt is missing or Verification-Quality Score below user floor. Omit decision to allow.",
+        "description": "Tamper-evident gate: when the project is activated, blocks the stop if any unresolved SUSPICIOUS finding exists, or the Auditor verification receipt is missing/invalid, or the Verification-Quality Score is below the configured floor, or a score delta regressed. Inert when not activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs",
         "timeout": 120
       }
     ],
     "SubagentStop": [
       {
-        "description": "Auditor re-runs against the stopped subagent's outputs. Emit decision:block + reason when subagent claims success without receipt.",
+        "description": "Applies the Stop gate when a subagent stops: a success claim requires no unresolved SUSPICIOUS findings and a valid receipt. Inert when not activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent_stop.mjs",
         "timeout": 120
       }
     ],
     "PreCompact": [
       {
-        "description": "Refuse compaction while unresolved FAIL or SUSPICIOUS audit verdicts exist in the session. Emits decision:block.",
+        "description": "Blocks compaction while unresolved SUSPICIOUS verdicts exist in .acv/findings.jsonl (honors pre_compact_block_on_suspicious). Inert when not activated.",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.mjs",
         "timeout": 5
       }

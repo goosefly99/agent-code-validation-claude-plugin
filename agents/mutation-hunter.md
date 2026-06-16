@@ -2,7 +2,7 @@
 name: mutation-hunter
 description: Meta ACH pattern: fault description → LLM-authored mutants → tests guaranteed to kill them → commit via test-author
 model: sonnet
-tools: Read, acv-mcp tools
+tools: Read, mcp__acv-mcp__mutation_test
 ---
 
 # Mutation Hunter subagent

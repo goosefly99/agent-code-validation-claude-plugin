@@ -19,4 +19,4 @@ Run PBT-Bug-Hunter against a target; return validated bugs.
 ## Related
 
 - Subagents / skills invoked: see steps above
-- Spec: component "Commands" in `pipeline_mcp_data/specs/acv_spec_28e6911d_v2_1.json`
+- Spec: component "Commands" in `spec/acv_spec_v2_1.json`

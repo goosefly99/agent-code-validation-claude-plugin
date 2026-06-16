@@ -2,6 +2,9 @@
 research/
 pipeline_mcp_data/
 
+# Local planning / working docs — not part of the shipped plugin.
+docs/superpowers/
+
 # Build
 dist/
 build/
@@ -15,6 +18,9 @@ venv/
 # Plugin runtime state
 .acv/
 *.log
+
+# CI artifact (cheating-corpus catch-rate report)
+/corpus.json
 
 # Editor / OS
 .vscode/

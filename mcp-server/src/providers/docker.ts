@@ -13,10 +13,10 @@
  *
  * Works in two deployment modes:
  *   A) MCP server runs as native Node on the host. `docker` CLI is on PATH;
- *      we shell out directly. This is the typical dev setup.
- *   B) MCP server runs inside a container itself (the new default per the
- *      Dockerfile). Mount the host docker socket in to enable
- *      Docker-out-of-Docker:
+ *      we shell out directly. This is the DEFAULT — `.mcp.json` launches the
+ *      server over stdio as a host Node process.
+ *   B) MCP server runs inside a container itself (optional / advanced). Mount
+ *      the host docker socket in to enable Docker-out-of-Docker:
  *        docker run --rm -i \
  *          -v /var/run/docker.sock:/var/run/docker.sock \
  *          acv-mcp:0.1.0

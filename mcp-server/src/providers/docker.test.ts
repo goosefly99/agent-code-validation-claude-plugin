@@ -43,7 +43,7 @@ function dockerDaemonReachable(): boolean {
     const r = spawnSync(
       "docker",
       ["version", "--format", "{{.Server.Version}}"],
-      { encoding: "utf8", timeout: 5000 },
+      { encoding: "utf8", timeout: 20000 },
     );
     return r.status === 0;
   } catch {
@@ -133,13 +133,13 @@ describe("integration — javascript round-trip", () => {
     const result = await sb.run("console.log('hello-from-docker'); process.exit(0);");
     expect(result.exit_code).toBe(0);
     expect(result.stdout).toMatch(/hello-from-docker/);
-  });
+  }, 60000);
 
   it.skipIf(!HAS_DOCKER)("D09: non-zero exit propagates", async () => {
     const sb = await spawnAndTrack("javascript", 60);
     const result = await sb.run("process.exit(7);");
     expect(result.exit_code).toBe(7);
-  });
+  }, 60000);
 });
 
 // ---------------------------------------------------------------------------
@@ -159,5 +159,5 @@ describe("integration — network isolation default", () => {
     );
     expect(result.exit_code).not.toBe(0);
     expect(result.stderr + result.stdout).toMatch(/LOOKUP_FAIL|EAI_AGAIN|ENOTFOUND/);
-  });
+  }, 60000);
 });

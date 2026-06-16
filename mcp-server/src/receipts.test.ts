@@ -1,4 +1,8 @@
 import { describe, it, expect, beforeAll } from "vitest";
+import { mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { randomBytes } from "node:crypto";
 import { initReceiptsKey, signReceipt, verifyReceipt, canonicalJson } from "./receipts.js";
 import type { VerificationReceipt } from "./types.js";
 
@@ -119,6 +123,29 @@ describe("canonicalJson — key-order stability", () => {
 
   it("sorts nested object keys as well", () => {
     expect(canonicalJson({ z: { b: 1, a: 2 } })).toBe(canonicalJson({ z: { a: 2, b: 1 } }));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// On-disk session key — receipts must be verifiable by hooks that read the
+// same .acv/.session-key file. (This describe runs after the in-memory suite
+// and intentionally re-points the module key to an on-disk one.)
+// ---------------------------------------------------------------------------
+
+describe("receipts — on-disk session key", () => {
+  it("loads .acv/.session-key and verifies receipts signed with it", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "acv-rk-"));
+    mkdirSync(join(dir, ".acv"), { recursive: true });
+    writeFileSync(join(dir, ".acv", ".session-key"), randomBytes(32));
+    await initReceiptsKey(dir);
+    const r = signReceipt({
+      receipt_id: "r1", session_id: "s1", sandbox_id: "sb", seed: 1,
+      test_counts: { run: 1, passed: 1, failed: 0, skipped: 0 },
+      mutation_score: null, property_count: null, verification_quality_score: 90,
+      mutation_score_delta: null, property_count_delta: null,
+      timings: { total_ms: 1, per_suite_ms: {} }, created_at: "t",
+    });
+    expect(verifyReceipt(r)).toBe(true);
   });
 });
 

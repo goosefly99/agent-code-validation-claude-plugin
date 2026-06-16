@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "verification_quality_floors": {
+    "coverage_pct": 80,
+    "mutation_score_pct": 60,
+    "property_count": 1,
+    "contract_count": 0
+  },
+  "thoroughness_default": "quick",
+  "pre_compact_block_on_suspicious": true
+}

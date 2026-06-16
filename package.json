@@ -8,8 +8,9 @@
   ],
   "scripts": {
     "build": "npm -w mcp-server run build",
-    "test": "npm -w mcp-server run test && python tests/cheating_corpus/harness.py",
-    "lint": "npm -w mcp-server run lint || true",
+    "test:hooks": "node --test hooks/_lib/acv.test.mjs hooks/session_start.test.mjs hooks/pre_tool_use.test.mjs hooks/post_tool_use.test.mjs hooks/stop.test.mjs hooks/pre_compact.test.mjs",
+    "test": "npm -w mcp-server run build && npm run test:hooks && npm -w mcp-server run test && python tests/cheating_corpus/harness.py",
+    "lint": "npm -w mcp-server run lint",
     "docker:build": "npm -w mcp-server run build && npm -w mcp-server run docker:build"
   },
   "engines": {

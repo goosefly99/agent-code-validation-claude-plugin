@@ -2,7 +2,7 @@
 name: sandbox-runner
 description: Owns long-lived PBT/fuzz/mutation campaigns; only subagent allowed a persistent sandbox handle. Also runs Inspect AI as subprocess.
 model: sonnet
-tools: Bash, acv-mcp tools
+tools: Bash, mcp__acv-mcp__run_in_sandbox, mcp__acv-mcp__pbt_run, mcp__acv-mcp__fuzz, mcp__acv-mcp__mutation_test, mcp__acv-mcp__run_inspect_eval
 ---
 
 # Sandbox Runner subagent

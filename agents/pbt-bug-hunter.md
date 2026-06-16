@@ -2,7 +2,7 @@
 name: pbt-bug-hunter
 description: Agentic-PBT-paper pattern: crawl module → infer properties → generate Hypothesis tests → reflect → surface only validated bugs
 model: sonnet
-tools: Read, acv-mcp tools
+tools: Read, mcp__acv-mcp__infer_properties, mcp__acv-mcp__pbt_run
 ---
 
 # Pbt Bug Hunter subagent

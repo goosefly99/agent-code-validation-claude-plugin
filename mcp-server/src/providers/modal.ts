@@ -1,7 +1,7 @@
 // gVisor, optimized for ML/GPU workloads.
 // Spec: components "MCP Server — acv-mcp" + risks T1 (cred isolation).
 
-import type { Sandbox, SandboxProvider } from "./index.js";
+import type { SandboxProvider } from "./index.js";
 
 export const provider: SandboxProvider = {
   id: "modal",

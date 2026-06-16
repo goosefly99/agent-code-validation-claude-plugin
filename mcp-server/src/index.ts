@@ -2,6 +2,9 @@
 // the stdio transport. Sandbox credentials are resolved once at boot and never
 // surfaced as tool arguments (T1 mitigation).
 
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -33,8 +36,14 @@ const TOOLS = [
 ];
 
 async function main() {
-  await initProvenance(process.env.ACV_PROVENANCE_DIR ?? ".acv");
-  await initReceiptsKey();
+  // Resolve the project root from CLAUDE_PROJECT_DIR (injected by Claude Code
+  // into the spawned server's env). The provenance dir defaults to <project>/.acv.
+  // The plugin is opt-in: only write provenance when acv.config.json is present.
+  const projectDir = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
+  const provenanceDir = process.env.ACV_PROVENANCE_DIR ?? join(projectDir, ".acv");
+  const active = existsSync(join(projectDir, "acv.config.json"));
+  await initProvenance(provenanceDir, { active });
+  await initReceiptsKey(projectDir);
 
   const server = new Server(
     { name: "acv-mcp", version: "0.1.0" },
