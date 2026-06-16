@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+    branches: [main, auto_dev]
+  pull_request:
+
+jobs:
+  build-test-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: npm install
+      - run: npm -w mcp-server run build
+      - run: npm -w mcp-server run test
+      - run: npm run lint
+      - run: node tests/smoke/mcp_handshake.mjs
+      - name: Cheating-corpus catch-rate floor (>= 0.8)
+        run: |
+          python tests/cheating_corpus/harness.py --report json > corpus.json
+          cat corpus.json
+          python -c "import json,sys; r=json.load(open('corpus.json')); cr=r['catch_rate']; print('catch_rate', cr); sys.exit(0 if cr>=0.8 else 1)"
