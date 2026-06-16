@@ -39,7 +39,7 @@ and optionally cross-model Verifier agents).
 
 ## Design spec
 
-Full spec: `pipeline_mcp_data/specs/acv_spec_28e6911d_v2_1.json`
+Full spec: `spec/acv_spec_v2_1.json`
 (v0.2.1, status: review, 8-phase implementation roadmap, T1–T8 threat model,
 18 risks with mitigations, 18 success criteria).
 

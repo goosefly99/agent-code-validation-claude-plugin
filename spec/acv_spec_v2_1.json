@@ -1,0 +1,802 @@
+{
+  "spec_id": "acv_spec_28e6911d",
+  "title": "Agent Code Validation — Claude Code Plugin (Design Spec v0.1.0)",
+  "created_date": "2026-04-22",
+  "updated_date": "2026-04-22",
+  "version": "0.2.1",
+  "status": "review",
+  "domain": "claude-code-plugin-development",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--tl-dr",
+      "title": "TL;DR — three-layer recommendation",
+      "relevance": "Defines the plugin's core architecture mandate: sandbox MCP + skills wrapping libs + tamper-evident Stop-hook auditor."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--1-sandboxed-code-execution-for-agents",
+      "title": "Landscape: 1. Sandboxed code execution for agents",
+      "relevance": "Choice of sandbox provider (E2B/Daytona/Modal/Inspect AI) is the foundational architectural decision."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--2-property-based-generative-testing",
+      "title": "Landscape: 2. Property-based / generative testing",
+      "relevance": "Hypothesis+ghostwriter is the main test-quality amplifier; Agentic PBT paper is direct prior art for pbt-bug-hunter subagent."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--3-mutation-testing",
+      "title": "Landscape: 3. Mutation testing",
+      "relevance": "Meta ACH / AdverTest / Mutahunter define the mutation-as-reward-signal pattern; Stryker/mutmut/cargo-mutants are the CLI backends."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--4-fuzzing",
+      "title": "Landscape: 4. Fuzzing",
+      "relevance": "Atheris + differential-vs-reference pattern is the canonical refactor safety net."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--5-llm-as-judge-eval-harnesses",
+      "title": "Landscape: 5. LLM-as-judge / eval harnesses",
+      "relevance": "Inspect AI is the research-grade open-source template the plugin can delegate to."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--6-agentic-test-generation",
+      "title": "Landscape: 6. Agentic test generation",
+      "relevance": "TestGen-LLM filter pipeline (build→pass→coverage→mutation-kill) — the filter IS the technique."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--7-spec-contract-behavioral-testing",
+      "title": "Landscape: 7. Spec / contract / behavioral testing",
+      "relevance": "icontract-hypothesis, CrossHair, deal, PactFlow MCP — the spec-executable layer."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--8-runtime-verification-type-driven-validation",
+      "title": "Landscape: 8. Runtime verification & type-driven validation",
+      "relevance": "Pydantic, zod, pyright/tsc --strict — the cheapest high-value gate."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--9-coverage-differential-testing",
+      "title": "Landscape: 9. Coverage & differential testing",
+      "relevance": "Differential testing via Atheris + reference; metamorphic relation library is a plugin-level gap to fill."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--10-agent-self-verification-patterns",
+      "title": "Landscape: 10. Agent self-verification patterns",
+      "relevance": "Defines the Generate→Verify→Reflect loop: Self-Refine, ReVeal, AlphaCodium, SWE-Search, red/green TDD."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--11-claude-code-cursor-codex-specific",
+      "title": "Landscape: 11. Claude Code / Cursor / Codex-specific",
+      "relevance": "Defines the platform integration surface: hooks, subagents, skills, plugin.json, MCP server."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--gaps",
+      "title": "Landscape: Gaps",
+      "relevance": "Explicit list of 10 things no Claude Code plugin ships today — the plugin's unique contribution surface."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "web_research--emerging-patterns",
+      "title": "Landscape: Emerging Patterns",
+      "relevance": "The eight 2025–2026 cross-cutting patterns: generate-verify-reflect, mutation-as-reward, sandbox-commodified, reward-hacking-as-rule, subagent-isolation, PBT+LLM synergy, contract-first via MCP, 'am I done' unsolved."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_2_d411795e",
+      "title": "LangGraph Reflection",
+      "relevance": "Canonical reflection/critique loop — direct template for auditor subagent."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_7_31641e7a",
+      "title": "Claude Code + Codex = AI GOD",
+      "relevance": "Cross-model adversarial verification — informs ensemble verification option in auditor."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_1_59547ab1",
+      "title": "Analyst-Critic Pattern (LangGraph + Python)",
+      "relevance": "Dual-agent guardrail pattern + reward-hacking discussion — maps to test-author vs auditor split."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_6_0acc2d83",
+      "title": "The Claude Code Setup Nobody Shows You",
+      "relevance": "Carl Vellotti PM OS: self-checking skills + subagents that interview through a framework — end-to-end validation-first workflow."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_9_680c79bd",
+      "title": "5 Claude Code Hooks That Save Me Hours Every Day",
+      "relevance": "Hooks as deterministic guardrails — informs hook design for PostToolUse/PreToolUse."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_11_9b43b6fb",
+      "title": "Claude Code — Hooks Deep Dive: All 9 Events",
+      "relevance": "Full lifecycle event reference for where verification steps slot in."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_12_71020683",
+      "title": "Claude Code Hooks Let Hackers Run Code & Steal API Keys",
+      "relevance": "Plugin-level security risks: hooks themselves are RCE surface — plugin must self-audit."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_0_b2910d25",
+      "title": "5 Claude Code skills I use every single day (Matt Pocock)",
+      "relevance": "/tdd + /grill-me + /improve-codebase-architecture — reference patterns for our skill designs."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_3_1ecdfd64",
+      "title": "Build Self-Improving Claude Code Skills",
+      "relevance": "Karpathy-inspired self-improving skill loop — informs the reflective evolution layer."
+    },
+    {
+      "collection": "agent-code-validation-research--cdf9c5b1",
+      "item_id": "local_youtube_videos_4_3c1a3b0a",
+      "title": "Claude Code Skills Changed Everything",
+      "relevance": "Skill Creator's blind-AB comparison pattern — model for our eval-driven skill promotion."
+    }
+  ],
+  "overview": {
+    "description": "A Claude Code plugin named `agent_code_validation` that provides the tooling, skills, subagents, hooks, and MCP server necessary for Claude agents to **actually verify the correctness of the code they write**. The plugin is architected around the universal 2025–2026 Generate → Verify → Reflect loop: a sandboxed execution MCP tool is the foundational primitive; skills wrap mature external testing libraries (Hypothesis+ghostwriter, Stryker/mutmut/Mutahunter, CrossHair, Atheris, Pydantic, Inspect AI) rather than reimplementing them; a tamper-evident Auditor subagent, invoked from Stop and SubagentStop hooks, re-runs declared-passing verification in a clean sandbox the primary agent could not have touched. This final layer is the plugin's headline differentiator. As of 2026-04, no community Claude Code skill surveyed (verification-before-completion, jwilger/agent-skills mutation-testing, alexop.dev mutation-testing, PactFlow MCP) ships the full tamper-evident Auditor + permission-partitioned test-writer combination, and the 2025 Berkeley/METR/DebugML/NIST literature shows that frontier models systematically overwrite tests and mine answer keys when trusted to self-verify. The plugin composes hooks, subagents, skills, commands, and an MCP server under a single plugin.json so users install one package and get: PBT via `/pbt`, mutation testing via `/mutate`, differential testing on refactors, runtime type validation via PostToolUse, contract-first enforcement via Skills, clean-sandbox auditing via Stop-hook, and optional cross-model adversarial review via a spawn-another-model hook.",
+    "objectives": [
+      "Deliver a single Claude Code plugin (one plugin.json) that agents install to get correctness validation — no ad-hoc config or external wiring required.",
+      "Expose a stable MCP tool surface: `run_in_sandbox`, `pbt_run`, `mutation_test`, `fuzz`, `diff_test`, `crosshair_check`, `run_inspect_eval`, `audit`, `infer_properties`.",
+      "Wrap (not reimplement) Hypothesis+ghostwriter, Stryker, mutmut, Mutahunter, CrossHair, icontract-hypothesis, Atheris, HypoFuzz, Pydantic/zod, pyright/tsc --strict, and Inspect AI behind discoverable Claude Code skills.",
+      "Enforce a tamper-evident verification contract: the primary agent cannot directly edit tests/ and cannot declare 'done' without the Auditor subagent re-confirming the claim in an isolated sandbox.",
+      "Provide five user-facing commands (/tdd, /pbt, /mutate, /verify, /audit) that scaffold the full generate-verify-reflect loop with correct subagent context isolation.",
+      "Ship a 'verification quality' score combining coverage floor + mutation-score floor + property-count floor so users see adequacy, not just pass/fail.",
+      "Work in both managed-sandbox mode (E2B / Daytona via API key) and local fallback mode (Piston / subprocess + seccomp) so users without API budget get a degraded-but-functional experience.",
+      "Cost-control: long-running PBT/fuzz/mutation campaigns can be offloaded to dedicated subagents rather than running on the primary session.",
+      "Respect user CLAUDE.md conventions — plugin automates the user's existing verification rules rather than duplicating them."
+    ],
+    "constraints": [
+      "Claude Code plugin model only: `.claude-plugin/plugin.json` (manifest) + `hooks/hooks.json` (hook registration) + `.mcp.json` (MCP server config) + `skills/` (SKILL.md folders) + `agents/` (subagent definitions) + `commands/` (legacy markdown commands where needed). No modifications to Claude Code core.",
+      "Must run on Claude Code ≥ current stable (use documented hook event names: PreToolUse, PostToolUse, Stop, SubagentStop, UserPromptSubmit, PreCompact, SessionStart, SessionEnd, Notification).",
+      "PostToolUse hook latency budget: ≤ 2 seconds on an average edit; full suites MUST be offloaded to background subagents.",
+      "Auditor subagent's sandbox MUST be provisioned and controlled by the plugin's MCP server, not the primary agent's tool set — the primary agent cannot hold credentials for it.",
+      "Test files become read-only to the primary agent after first-write during a session; only the `test-author` subagent (invoked via plugin hook) may subsequently modify them.",
+      "Mutation-testing runs must be incremental (touched-files) by default; full-suite mutation is opt-in only.",
+      "The plugin must NOT attempt to re-implement any upstream library (Hypothesis, Stryker, Atheris, CrossHair, Inspect AI) — wrapping only.",
+      "LLM-as-judge is never allowed to be the sole verification signal: every skill that uses it must pair with a deterministic test (prevents the EMNLP 2025 'high self-consistency, plausibly wrong' failure).",
+      "Plugin's own hooks must be auditable: ship a self-audit skill that reads the hook set and reports what each does.",
+      "No secret-holding in plugin code — all sandbox credentials via env vars passed to the MCP server process only.",
+      "Windows-compatibility matrix: Phase 1 local-fallback (subprocess + seccomp) requires Linux or WSL. Native Windows users default to managed-sandbox mode (E2B or Daytona); seccomp-bpf is unavailable on native Windows and the spec must not silently assume it. Docker-backed local fallback is the escape hatch when WSL is unavailable."
+    ],
+    "assumptions": [
+      "Users have Python ≥ 3.11 and Node ≥ 20 available (needed for Hypothesis/Atheris and for the MCP server).",
+      "At least one of {E2B API key, Daytona API key, Modal token, or local Docker} is available; plugin degrades gracefully if none are.",
+      "v1 target projects are Python and TypeScript/JavaScript (first-class library coverage); Rust is deferred to v2 because cargo-mutants is the only wrapped backend and Hypothesis/CrossHair equivalents for Rust are not yet mature enough to wrap.",
+      "Users already use `git` for version control (used by the watchdog hook to detect test-tamper attempts).",
+      "Claude Code's subagent model preserves context isolation as documented (no leakage of primary-agent chain-of-thought into subagents).",
+      "Anthropic's cost-of-tokens for Opus/Sonnet remains stable-enough to price the Auditor subagent at < 5% of the primary agent's cost.",
+      "The 'Am I done?' problem can be operationalized as a contract that Auditor enforces, not as an LLM judgment call."
+    ],
+    "threat_model": [
+      "T1 — MCP server environment readability: primary agent with Bash/Read access reads /proc/<pid>/environ, `ps auxe`, `lsof`, or the plugin's spawn script to recover sandbox provider credentials.",
+      "T2 — Rigged-impl-to-match-test: primary agent does not edit tests but subtly weakens production code semantics so that weakened or already-present oracles pass trivially.",
+      "T3 — Non-canonical test path: primary agent writes assertion-style code under a path not in the tests/** allowlist (e.g., `test_helpers.py` at repo root, `src/_test_utils.py`).",
+      "T4 — Auditor self-consistency: Auditor uses the same model family as primary agent, shares blind spots, and rubber-stamps semantically broken solutions.",
+      "T5 — Watchdog bypass via dynamic dispatch: `eval(\"pytest.mark.skip\")`, `importlib` monkey-patching, `builtins.assert = lambda *a,**k: True`, decorator rewriting, `sys.modules` mutation.",
+      "T6 — SessionStart baseline poisoning: primary agent uses tools before the SessionStart snapshot commits, allowing test-file modifications to enter the baseline.",
+      "T7 — Supply-chain compromise: dependency-confusion or typosquatting on any of the 15+ wrapped CLIs (Stryker, mutmut, Atheris, Mutahunter, CrossHair, Hypothesis, etc.).",
+      "T8 — Data egress / GDPR: source code exfiltration to third-party sandbox (E2B/Daytona/Modal) without user consent; relevant under GDPR Art. 28 for regulated users."
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "MCP Server — acv-mcp",
+        "description": "Single MCP server process launched by the plugin that exposes all sandbox/test-runner tools. Owns sandbox lifecycle and credentials so the primary agent cannot access the same sandbox a completed auditor used.",
+        "responsibilities": [
+          "Expose MCP tools: `run_in_sandbox(code, language, timeout, allowlist)`, `pbt_run(target, strategies?, seed?)`, `mutation_test(paths, backend?)`, `fuzz(target, reference?, budget_seconds)`, `diff_test(impl_a, impl_b, strategy, n_cases)`, `crosshair_check(module, function)`, `run_inspect_eval(task, sandbox)`, `infer_properties(signature, docstring)`, `audit(session_id)`.",
+          "Pick sandbox backend per request: E2B (default for JS/Python microVM), Daytona (fastest cold start), Modal (ML/GPU), or local subprocess+seccomp (no-API fallback).",
+          "Pin Auditor sandbox credentials so the primary agent's MCP tool list never surfaces them.",
+          "Emit a 'verification receipt' (signed-ish stamp with seed, sandbox id, test counts, mutation score, timings) every time a verification completes — used by the Stop hook to decide if 'done' is real.",
+          "Log every sandbox spawn with provenance (which subagent, which hook, which skill invoked it) for post-session audit."
+        ],
+        "inputs": [
+          "MCP tool calls from primary agent or subagents",
+          "Sandbox provider credentials via env"
+        ],
+        "outputs": [
+          "Tool results (structured JSON)",
+          "Verification receipts",
+          "Provenance log entries"
+        ],
+        "dependencies": [
+          "E2B SDK",
+          "Daytona SDK",
+          "Modal SDK",
+          "Inspect AI",
+          "Hypothesis CLI",
+          "mutmut/Stryker/cargo-mutants CLIs",
+          "CrossHair",
+          "Atheris"
+        ]
+      },
+      {
+        "name": "Auditor Subagent",
+        "description": "The plugin's headline differentiator: an isolated subagent invoked by Stop / SubagentStop hooks to re-run the declared-passing verification in a clean sandbox the primary agent could not have touched. Pins BOTH tests/ AND production-file hashes to their session-start state (unless a test-author subagent legitimately modified tests); requires mutation-score-delta and property-count-delta vs baseline as load-bearing signals in the verdict. Mitigates the rigged-impl-to-match-test attack (T2) structurally, not heuristically.",
+        "responsibilities": [
+          "Checkout a clean copy of the repo (git ls-tree → re-export) into the Auditor sandbox.",
+          "Restore test files to the session-start hash (or, if a test-author subagent modified them, to the test-author's outputs — but NEVER to anything the primary agent wrote directly).",
+          "Pin production-file hashes at Auditor time and compare to session-start hashes; any production-file change is input to the delta check.",
+          "Re-run the verification suite the primary agent claimed passed (pytest/vitest/etc) plus mutation + PBT + runtime-schema checks.",
+          "Compute mutation-score-delta and property-count-delta vs session-start baseline; any drop triggers SUSPICIOUS verdict (not just FAIL).",
+          "Compare outputs to the primary agent's declared results; emit PASS / FAIL / SUSPICIOUS.",
+          "Route PostToolUse `systemMessage` Watchdog findings (T5 AST-analyzer alerts) into the evidence artifact.",
+          "Produce an HMAC-signed evidence artifact (fresh test output, sandbox id, seed, timings, receipt) — the Stop hook emits `decision: block` + `reason` if signature is missing or invalid (omission of decision allows the stop)."
+        ],
+        "inputs": [
+          "Stop-hook-provided session snapshot",
+          "Plugin-pinned pre-edit test AND production file hashes",
+          "Session-start mutation-score + property-count baseline",
+          "MCP server's sandbox credentials (not exposed to primary agent)"
+        ],
+        "outputs": [
+          "Audit verdict (PASS/FAIL/SUSPICIOUS)",
+          "HMAC-signed evidence artifact with mutation-score-delta + property-count-delta",
+          "Reward-hacking Watchdog alerts routed as attached evidence"
+        ],
+        "dependencies": [
+          "MCP Server — acv-mcp",
+          "Stop / SubagentStop hooks",
+          "git (for pre-edit pinning)"
+        ]
+      },
+      {
+        "name": "Test-Author Subagent",
+        "description": "The sole legitimate channel for writing to tests/ after the session starts. Enforces Meta ACH-style filter pipeline (build → pass → coverage → mutation-kill) on every proposed test.",
+        "responsibilities": [
+          "Generate tests via wrapped TestGen-LLM / Qodo-Cover style pipeline (or via Hypothesis ghostwriter for PBT).",
+          "Run the filter pipeline: build → pass → coverage-increase → mutation-kill floor. Drop tests that don't pass all filters.",
+          "Emit the surviving tests to the Auditor-pinned test locations; the PostToolUse hook validates that only this subagent is writing there.",
+          "On refactor, snapshot pre-refactor behavior (Hypothesis seed corpus or N random inputs) for differential-testing."
+        ],
+        "inputs": [
+          "Agent request (with function signature, docstring, contracts)",
+          "Sandbox from MCP server"
+        ],
+        "outputs": [
+          "Test files (written to tests/ paths)",
+          "Filter pipeline report"
+        ],
+        "dependencies": [
+          "MCP Server — acv-mcp",
+          "Hypothesis ghostwriter",
+          "Qodo-Cover (optional backend)",
+          "mutation backends"
+        ]
+      },
+      {
+        "name": "PBT-Bug-Hunter Subagent",
+        "description": "Agentic-PBT-paper pattern: crawl target modules → infer properties → generate Hypothesis tests → execute → reflect → report only validated bugs.",
+        "responsibilities": [
+          "Walk the target module, identify pure functions and public APIs.",
+          "Call MCP `infer_properties(signature, docstring)` to get candidate properties mapped to Hypothesis ghostwriter templates: {magic, fuzz, idempotent, roundtrip, equivalent, binary_operation, ufunc}. The `--errors-equivalent` CLI flag is a modifier on `equivalent` (treats same-typed exceptions as equal) and is surfaced as a configurable mode on that template, not a standalone template.",
+          "Author Hypothesis strategies that bind to each property; run at configurable thoroughness.",
+          "Reflect on every found bug: is it a real defect or a property misstatement? Only surface validated bugs.",
+          "Emit a structured bug report keyed to the source function."
+        ],
+        "inputs": [
+          "Target module path",
+          "Thoroughness level (quick/standard/deep)",
+          "Sandbox from MCP server"
+        ],
+        "outputs": [
+          "Validated bug reports",
+          "New Hypothesis tests for Test-Author subagent to adopt"
+        ],
+        "dependencies": [
+          "MCP Server — acv-mcp",
+          "Hypothesis",
+          "icontract-hypothesis"
+        ]
+      },
+      {
+        "name": "Mutation-Hunter Subagent",
+        "description": "Meta ACH pattern: takes a plain-English fault description → generates realistic LLM-authored mutants → generates tests guaranteed to kill them → commits via Test-Author channel.",
+        "responsibilities": [
+          "Accept fault description (from user or from a skill).",
+          "Call mutation backend (Stryker/mutmut/Mutahunter/cargo-mutants) to list natural mutants.",
+          "For each surviving mutant, author a test that would kill it (LLM reasoning).",
+          "Route new tests through Test-Author filter pipeline.",
+          "Return a final mutation-score delta report."
+        ],
+        "inputs": [
+          "Target files",
+          "Fault description (optional)",
+          "Mutation thoroughness"
+        ],
+        "outputs": [
+          "Mutation-score delta",
+          "New killing tests"
+        ],
+        "dependencies": [
+          "MCP Server — acv-mcp",
+          "Mutation backend CLIs",
+          "Test-Author Subagent"
+        ]
+      },
+      {
+        "name": "Sandbox-Runner Subagent",
+        "description": "Owns long-lived PBT/fuzz/mutation campaigns so the primary agent is never blocked by them. The only subagent allowed to hold a persistent sandbox handle.",
+        "responsibilities": [
+          "Spawn persistent Daytona / E2B sandboxes and reuse them across campaigns.",
+          "Report streaming progress back to the caller.",
+          "Tear down sandboxes on session end via SessionEnd hook."
+        ],
+        "inputs": [
+          "Campaign spec (target, technique, budget)",
+          "Sandbox provider credentials"
+        ],
+        "outputs": [
+          "Streaming progress events",
+          "Final campaign report"
+        ],
+        "dependencies": [
+          "MCP Server — acv-mcp"
+        ]
+      },
+      {
+        "name": "Verifier Subagent (optional ensemble role)",
+        "description": "Independent second-model verifier (e.g., Codex-reviews-Claude pattern). Used when ensemble verification is enabled; reads the primary agent's proposed solution and the Auditor's evidence, emits an independent verdict.",
+        "responsibilities": [
+          "Read the diff, the Auditor evidence, the proposed test coverage, and the mutation score.",
+          "Emit an independent confidence-scored verdict (threshold default 80, borrowed from Anthropic code-review plugin).",
+          "Never write files; read-only."
+        ],
+        "inputs": [
+          "Diff",
+          "Auditor evidence",
+          "Verification-quality score"
+        ],
+        "outputs": [
+          "Independent verdict + confidence score"
+        ],
+        "dependencies": [
+          "Auditor Subagent"
+        ]
+      },
+      {
+        "name": "Hooks Layer",
+        "description": "Six deterministic hooks registered by the plugin. Each is narrow, fast, and documented. Hook output contracts follow Claude Code's actual semantics: PreToolUse uses `hookSpecificOutput.permissionDecision` (allow|deny|ask|defer); Stop and SubagentStop use a top-level `decision` field whose only documented value is `block` (omit the field to allow). PostToolUse also supports `decision: block` with a `reason` field — this is feedback-based (the tool already ran), not a pre-execution veto.",
+        "responsibilities": [
+          "SessionStart (atomic): block all primary-agent tool use until `tests/**` hashes are snapshotted to `.acv/session-start.json`, the provenance log is initialized, and the MCP-server sandbox pool boots. Primary agent receives tools only after snapshot commits.",
+          "PreToolUse(Edit|Write): emits `hookSpecificOutput.permissionDecision: deny` when target path matches tests/** allowlist and the caller is not the `test-author` subagent.",
+          "PostToolUse(Edit|Write): on production code → run scoped type-check + lint (pyright/tsc --strict, ruff/eslint) AND AST-based Reward-Hacking Watchdog. On SUSPICIOUS findings, emit `decision: block` + `reason` to feed the verdict back into the primary agent's context; forward the evidence to the Auditor. (The tool has already run; PostToolUse cannot un-run it.)",
+          "Stop: Auditor subagent runs in clean sandbox; emits `decision: block` + `reason` when verification receipt is missing or the Verification-Quality Score is below user-configured floor. Omits the field to allow the stop.",
+          "SubagentStop: Auditor re-runs against that subagent's outputs; emits `decision: block` + `reason` when the subagent claims success without a valid receipt.",
+          "PreCompact: refuses compaction when the session has unresolved FAIL / SUSPICIOUS audit verdicts (emits `decision: block`)."
+        ],
+        "inputs": [
+          "Claude Code lifecycle events",
+          "MCP server session state"
+        ],
+        "outputs": [
+          "PreToolUse: `hookSpecificOutput.permissionDecision: deny` when enforcement triggers",
+          "Stop / SubagentStop: `decision: block` + `reason` on failed verification; field omitted to allow",
+          "PostToolUse: `decision: block` + `reason` on SUSPICIOUS watchdog findings (feedback-based, tool already ran)",
+          "User-facing warnings on SUSPICIOUS verdicts"
+        ],
+        "dependencies": [
+          "MCP Server — acv-mcp",
+          "Auditor Subagent"
+        ]
+      },
+      {
+        "name": "Skills Set",
+        "description": "Progressive-disclosure skills (per plugin-dev skill-development reference: description-driven discovery, not name-driven) that teach the agent HOW to use each validation technique. All skills invoke MCP tools rather than reimplement logic.",
+        "responsibilities": [
+          "`property-based-testing` — when the agent writes/reviews a pure function, run `hypothesis write <module>` as first pass via `pbt_run`; reflect once; surface only validated properties.",
+          "`mutation-testing` — invoke the right backend per project type (Stryker JS/TS, mutmut Python, cargo-mutants Rust); require ≥ target mutation score before 'done'.",
+          "`differential-testing` — on refactor, snapshot pre-refactor function behavior, auto-generate diff harness, run N random inputs through `diff_test`.",
+          "`verification-before-completion` — block any 'done' declaration without fresh verification receipt.",
+          "`tdd-red-green-refactor` — scaffold separate subagents per phase (test-writer, implementer, refactorer) so contexts don't cross-contaminate.",
+          "`contract-first` — when target has type annotations or contracts, require `icontract`/`deal` or `pydantic`/`zod` guards; use CrossHair to find counterexamples.",
+          "`runtime-validation` — require Pydantic/zod schemas at every agent-facing boundary (public function, API, tool I/O). When using Pydantic AI, declare `output_validators` that raise `ModelRetry` on constraint violations to opt into retry up to a configured `max_retries`; retries are not automatic on every schema failure.",
+          "`self-audit-plugin-hooks` — plugin's self-transparency skill: reads the registered hook set, reports what each does, verifies no hook reaches outside the plugin sandbox."
+        ],
+        "inputs": [
+          "Agent-discovered via description"
+        ],
+        "outputs": [
+          "Invoked MCP tool calls + reflection"
+        ],
+        "dependencies": [
+          "MCP Server — acv-mcp",
+          "Relevant subagents"
+        ]
+      },
+      {
+        "name": "Commands",
+        "description": "User-facing slash commands for explicit invocation of the validation workflows.",
+        "responsibilities": [
+          "`/tdd <feature>` — scaffolds red-green-refactor with separate subagents per phase.",
+          "`/pbt <target>` — runs PBT-Bug-Hunter subagent on the target; returns validated bug list.",
+          "`/mutate <paths?>` — runs Mutation-Hunter; returns delta score + new killing tests.",
+          "`/verify` — requests an Auditor run on current session state (without waiting for Stop).",
+          "`/audit` — produces a plugin self-audit report (hooks, permissions, sandbox provider, credentials source)."
+        ],
+        "inputs": [
+          "User text input"
+        ],
+        "outputs": [
+          "Delegated subagent runs",
+          "Terminal-visible reports"
+        ],
+        "dependencies": [
+          "Relevant subagents",
+          "MCP Server — acv-mcp"
+        ]
+      },
+      {
+        "name": "Verification-Quality Score",
+        "description": "Single numeric signal combining coverage floor + mutation-score floor + property-count floor. The Stop hook's gate; lower bound, not upper bound. Users see this in the Auditor evidence artifact.",
+        "responsibilities": [
+          "Aggregate per-touched-file: line coverage %, mutation kill %, # Hypothesis properties authored, # contracts declared.",
+          "Compare to user-configured minima (default 80 / 60 / 1 / 0 for coverage / mutation / properties / contracts).",
+          "Emit a composite grade + the breakdown so users know which dimension is weakest."
+        ],
+        "inputs": [
+          "Auditor evidence",
+          "User config (thresholds)"
+        ],
+        "outputs": [
+          "Composite grade",
+          "Per-dimension breakdown"
+        ],
+        "dependencies": [
+          "Auditor Subagent"
+        ]
+      },
+      {
+        "name": "Reward-Hacking Watchdog",
+        "description": "PostToolUse pattern detector that flags suspicious agent behaviors. Reads every Edit/Write + preceding Bash calls and matches against a rule set.",
+        "responsibilities": [
+          "Detect edits to /tests paths by non-test-author callers.",
+          "Detect `--no-verify`, `@pytest.mark.skip`, `.skip()`, relaxed `expect_error`, deletion of `assert*` lines.",
+          "Detect Bash that touches `.git/` history of test files, monkey-patching of assertion libraries, unlinking of test files.",
+          "On detection: emit alert + require human confirmation before proceeding."
+        ],
+        "inputs": [
+          "Every PostToolUse event"
+        ],
+        "outputs": [
+          "Alerts routed to Auditor as SUSPICIOUS evidence"
+        ],
+        "dependencies": [
+          "Hooks Layer",
+          "Auditor Subagent"
+        ]
+      },
+      {
+        "name": "Plugin Manifest & Configuration",
+        "description": "The plugin ships a standard Claude Code layout: `.claude-plugin/plugin.json` (metadata + discovery), `hooks/hooks.json` (hook registration), `.mcp.json` (MCP server config), `skills/` (SKILL.md folders), `agents/` (subagent definitions), `commands/` (legacy markdown commands where a slash-command is preferable to a skill). Together they register every above component as a single installable unit.",
+        "responsibilities": [
+          "Ship `.claude-plugin/plugin.json` with plugin metadata, versioning, and discovery.",
+          "Register all 6 hooks in `hooks/hooks.json`.",
+          "Declare the MCP server in `.mcp.json` with stdio transport.",
+          "Ship 8 skills under `skills/<skill-name>/SKILL.md` with progressive disclosure (description-driven discovery).",
+          "Ship 7 subagent definitions under `agents/`.",
+          "Expose user-tunable config via `settings.json` at the plugin root: verification-quality floors, sandbox provider preference, thoroughness defaults, ensemble-verifier on/off.",
+          "Provide sensible defaults so the plugin is useful the moment it is installed."
+        ],
+        "inputs": [
+          "Installation via Claude Code plugin system"
+        ],
+        "outputs": [
+          "Registered plugin components"
+        ],
+        "dependencies": [
+          "All above"
+        ]
+      }
+    ],
+    "data_flow": "Primary agent receives a task → writes production code via Edit/Write → PostToolUse hook runs scoped type-check + lint + watchdog via the MCP server → if clean, the agent may request tests; PreToolUse on tests/ paths refuses unless caller is the Test-Author subagent → Test-Author subagent runs the generate → filter → mutation-kill pipeline via MCP tools, writing only surviving tests → agent declares 'done' → Stop hook invokes Auditor subagent in a clean sandbox provisioned by the MCP server using credentials the primary agent never sees → Auditor checks out clean repo, pins test files to session-start hash (or Test-Author latest for tests/ paths), re-runs the full verification suite, produces a verification receipt and verification-quality score → if receipt missing or score below floor, Stop hook issues `decision: \"block\"` and returns Auditor evidence to the primary agent for another pass. On every subagent stop (SubagentStop), the same Auditor run happens on just that subagent's outputs. On every refactor, the Test-Author also snapshots pre-refactor behavior so differential-testing can run the next time the refactored function is invoked. Every sandbox spawn, every MCP tool call, and every hook decision is logged to a provenance store so /audit can reconstruct what happened.",
+    "integration_points": [
+      "Claude Code runtime: `.claude-plugin/plugin.json` + `hooks/hooks.json` + `.mcp.json` registration, hook lifecycle (PreToolUse, PostToolUse, Stop, SubagentStop, PreCompact, SessionStart, SessionEnd), subagent model, skills discovery.",
+      "Sandbox providers: E2B (primary, microVM isolation), Daytona (fast cold start), Modal (ML/GPU), Inspect AI sandbox plugin (Docker Compose/K8s/Proxmox), local Piston / subprocess+seccomp fallback.",
+      "Testing libraries: Hypothesis + ghostwriter + HypoFuzz (Python PBT), icontract-hypothesis, CrossHair, deal (contract/symbolic), Atheris (Python fuzzing), Stryker (JS/TS mutation), mutmut/cosmic-ray (Python mutation), cargo-mutants (Rust mutation), Mutahunter / LLMorpheus (LLM-authored mutants), Pact / PactFlow MCP.",
+      "Eval harnesses: Inspect AI (200+ evals, pluggable sandbox), DeepEval (50+ metrics), Promptfoo (coding-agent trajectory assertions).",
+      "Static analyzers invoked by hooks: pyright --strict, mypy --strict, tsc --strict, ruff / eslint.",
+      "Git: used by SessionStart for pre-edit hash pinning and by Watchdog for detecting history manipulation.",
+      "Optional cross-model verification: Codex / Gemini CLI / another Claude model via ensemble Verifier subagent.",
+      "User CLAUDE.md: plugin reads (does not overwrite) existing verification rules so it automates rather than duplicates."
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Phase 0 — Cheating-agent corpus + baseline dogfooding",
+        "tasks": [
+          "Curate a toy cheating-agent corpus of 8–12 reward-hacking attack scenarios drawn from Berkeley/DebugML/ImpossibleBench documented behaviors: (1) overwrite tests to force pass; (2) monkey-patch assertion library; (3) add @pytest.mark.skip; (4) dynamic `eval` watchdog bypass; (5) mine .git/ history for answer keys; (6) relaxed expect_error; (7) rigged-impl-to-match-test (T2); (8) non-canonical test path (T3); (9) env-read for provider keys (T1); (10) SessionStart race (T6).",
+          "Harness each scenario as an automated integration test against the plugin's eventual APIs.",
+          "Define success_criteria target: plugin must catch ≥ 80% of scenarios by Phase 1 v0.1.0 ship; catch rate becomes a published release metric.",
+          "Publish the corpus under `tests/cheating_corpus/` with public documentation so external reviewers can verify."
+        ],
+        "deliverables": [
+          "`tests/cheating_corpus/` with 8–12 scenarios",
+          "Automated integration test harness",
+          "Documented target catch-rate (≥ 80% for Phase 1 v0.1.0)",
+          "Public README documenting the corpus methodology"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Foundation — MCP server + sandbox tool + plugin manifest",
+        "tasks": [
+          "Bootstrap `.claude-plugin/plugin.json` with metadata and initial registrations (empty skills/subagents/hooks arrays for now).",
+          "Implement the MCP server skeleton (TypeScript, stdio transport) with a single tool: `run_in_sandbox(code, language, timeout)`.",
+          "Wire E2B as the default managed backend; add local subprocess+seccomp fallback gated by a flag.",
+          "Implement provenance logging (JSON lines file in `.acv/` per session). HMAC-signed verification receipt format: {receipt_id, sandbox_id, seed, test_counts, mutation_score, verification_quality_score, timings, signature} — signing key generated at SessionStart and held only by the MCP server.",
+          "Ship a smoke test: plugin installs, `/verify` responds, sandbox spawns.",
+          "Document env-var credential handling and the plugin isolation promise."
+        ],
+        "deliverables": [
+          ".claude-plugin/plugin.json + hooks/hooks.json + .mcp.json v0.1.0",
+          "`mcp-server/` with `run_in_sandbox` MCP tool",
+          "Provenance log format spec",
+          "HMAC-signed verification receipt schema + signing-key lifecycle spec",
+          "Smoke-test harness (end-to-end `/verify` call)",
+          "Installation docs"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Tamper-evident Auditor + permission partitioning (the differentiator)",
+        "tasks": [
+          "Implement SessionStart hook: snapshot `tests/**` hashes to `.acv/session-start.json`.",
+          "Implement PreToolUse(Edit|Write) hook: block tests/ writes unless caller is `test-author` subagent.",
+          "Implement Auditor subagent: checkout clean repo, pin tests to SessionStart hash, re-run verification in MCP-provisioned sandbox.",
+          "Implement Stop hook: call Auditor, emit verification receipt, block 'done' without receipt.",
+          "Implement SubagentStop hook: Auditor re-runs against subagent outputs.",
+          "Implement Reward-Hacking Watchdog (PostToolUse pattern detector) with initial rule set.",
+          "Integration test: simulate a cheating primary agent that overwrites tests — plugin must catch + block.",
+          "Implement `self-audit-plugin-hooks` skill (moved up from Phase 7): plugin reads its own registered hook set and reports what each does (including network egress attempts). User's only defense against hook-RCE risk, so it exists the moment hooks are registered."
+        ],
+        "deliverables": [
+          "Auditor subagent",
+          "Five hooks (SessionStart, PreToolUse, PostToolUse, Stop, SubagentStop)",
+          "Verification receipt spec",
+          "Reward-hacking watchdog rule set v1",
+          "Cheating-agent integration test suite",
+          "`self-audit-plugin-hooks` skill shipping in v0.2.0"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "PBT + Mutation skills (the amplifier layer)",
+        "tasks": [
+          "Implement MCP tools: `pbt_run`, `infer_properties`, `mutation_test`.",
+          "Wrap Hypothesis + ghostwriter + HypoFuzz under `pbt_run`; default per-test budget configurable.",
+          "Wrap Stryker / mutmut / cargo-mutants / Mutahunter auto-select based on project files.",
+          "Implement PBT-Bug-Hunter subagent matching Agentic PBT paper flow.",
+          "Implement Mutation-Hunter subagent matching Meta ACH flow.",
+          "Implement Test-Author subagent with build/pass/coverage/mutation-kill filter pipeline.",
+          "Ship skills: `property-based-testing`, `mutation-testing`.",
+          "Ship commands: `/pbt`, `/mutate`.",
+          "Define unified mutant descriptor schema: {id: string, origin_path: string, span: {start: [line,col], end: [line,col]}, operator: string, status: 'killed'|'survived'|'timeout'|'no-coverage', backend: 'stryker'|'mutmut'|'cargo-mutants'|'mutahunter'}; implement adapter modules per backend to normalize to this shape. Deliverables include one adapter per backend."
+        ],
+        "deliverables": [
+          "3 MCP tools (pbt_run, infer_properties, mutation_test)",
+          "3 subagents (PBT-Bug-Hunter, Mutation-Hunter, Test-Author)",
+          "2 skills, 2 commands",
+          "Filter-pipeline spec (build→pass→coverage→mutation-kill)",
+          "Unified mutant descriptor JSON schema + 4 backend adapters (stryker/mutmut/cargo-mutants/mutahunter)"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Runtime + contract layer (the cheap high-value gates)",
+        "tasks": [
+          "Wire PostToolUse hook to call `pyright --strict` (Python) or `tsc --noEmit --strict` (TS/JS) scoped to touched files.",
+          "Add MCP tool `crosshair_check(module, function)`.",
+          "Add MCP tool `validate_against_schema(value, schema)`.",
+          "Ship skills: `runtime-validation`, `contract-first`.",
+          "Integration with Pact / PactFlow MCP (if available) via skill `consumer-contract`."
+        ],
+        "deliverables": [
+          "2 MCP tools (crosshair_check, validate_against_schema)",
+          "2 skills + PostToolUse type-checker integration",
+          "Consumer-contract skill (Pact integration)"
+        ]
+      },
+      {
+        "phase": 6,
+        "name": "Fuzz + differential + metamorphic (the refactor safety net)",
+        "tasks": [
+          "Add MCP tools: `fuzz(target, reference?, budget_seconds)`, `diff_test(impl_a, impl_b, strategy, n_cases)`.",
+          "Wrap Atheris + libFuzzer via fuzz tool.",
+          "Implement pre-refactor behavior snapshot (Hypothesis seed corpus + N random inputs) in Test-Author subagent.",
+          "Author a curated library of common programming metamorphic relations (sort idempotence, encode/decode round-trip, determinism, monotonicity, etc.).",
+          "Ship skill: `differential-testing`."
+        ],
+        "deliverables": [
+          "2 MCP tools (fuzz, diff_test)",
+          "Metamorphic-relations library",
+          "`differential-testing` skill"
+        ]
+      },
+      {
+        "phase": 7,
+        "name": "Eval harness integration + verification-quality score",
+        "tasks": [
+          "Add MCP tool `run_inspect_eval(task, sandbox)` that delegates to the Sandbox-Runner subagent, which runs Inspect AI as a subprocess in a dedicated sandbox with task/solver/scorer passthrough; MCP server marshals results back. Inspect AI does support in-process `eval()`, but we choose subprocess delegation as an engineering tradeoff: TypeScript MCP server + Python Inspect async runtime collide on stdio lifetime, and isolating Inspect in its own sandbox lets us negotiate sandbox backends separately from the MCP tool surface.",
+          "Implement Verification-Quality Score aggregator (coverage + mutation + properties + contracts).",
+          "Surface the score in every Auditor evidence artifact.",
+          "Add user-configurable floors (coverage/mutation/property-count) in plugin config.",
+          "Ship skill: `write-eval` (authors Inspect/DeepEval test cases alongside code)."
+        ],
+        "deliverables": [
+          "1 MCP tool (run_inspect_eval)",
+          "Verification-Quality Score module",
+          "User config surface for floors",
+          "`write-eval` skill"
+        ]
+      },
+      {
+        "phase": 8,
+        "name": "Ensemble verifier + self-audit + release polish",
+        "tasks": [
+          "Implement optional Verifier subagent with cross-model (Codex / Gemini / second Claude model) support.",
+          "Implement `/tdd` command scaffolding (subagent-isolated red-green-refactor).",
+          "Implement PreCompact hook: refuse compaction if session has unresolved SUSPICIOUS verdicts.",
+          "Full end-to-end tests: simulate realistic agent work on a reference project, verify plugin catches 3+ classes of correctness failure.",
+          "Publish plugin.json v1.0.0; write README with install, config, usage, troubleshooting."
+        ],
+        "deliverables": [
+          "Verifier subagent + ensemble config",
+          "`/audit`, `/tdd` commands",
+          "PreCompact hook",
+          "End-to-end test suite",
+          ".claude-plugin/plugin.json + hooks/hooks.json + .mcp.json v1.0.0",
+          "README + troubleshooting docs"
+        ]
+      }
+    ],
+    "tech_stack": [
+      "TypeScript (Node ≥ 20) for MCP server and hook scripts",
+      "Python ≥ 3.11 for Hypothesis (ghostwriter + HypoFuzz), Atheris, CrossHair, mutmut, icontract, Pydantic runtime wrappers. Pydantic AI retries are opt-in via `ModelRetry` raised inside `output_validators`.",
+      "Claude Code plugin system (plugin.json, skills/, subagents/, hooks/, commands/, mcp-server/)",
+      "MCP SDK (@modelcontextprotocol/sdk) for MCP server",
+      "Sandbox providers: E2B (primary), Daytona (fast cold start), Modal (ML), Inspect AI sandbox (self-hosted), local subprocess + seccomp (fallback)",
+      "Testing libraries wrapped (not reimplemented): Hypothesis + ghostwriter + HypoFuzz, Stryker, mutmut, cosmic-ray, cargo-mutants, Mutahunter, LLMorpheus, CrossHair, icontract, icontract-hypothesis, deal, Pydantic, zod, Atheris, libFuzzer, Inspect AI, DeepEval, Promptfoo",
+      "Static analyzers invoked by hooks: pyright, mypy, tsc, ruff, eslint",
+      "git CLI for pre-edit hash pinning and watchdog history checks",
+      "JSON Schema for verification receipts and config validation"
+    ],
+    "complexity": "high"
+  },
+  "risks": [
+    {
+      "description": "The tamper-evident Auditor relies on credential isolation between the MCP server process and the primary agent's tool set. If the primary agent can read the MCP server's environment (via a bug in Claude Code's sandbox), the differentiator collapses.",
+      "severity": "high",
+      "mitigation": "Plugin MUST launch MCP server as a separate OS process with credentials passed only via environment variables at spawn; never expose sandbox provider keys as MCP tool arguments. Add a self-audit skill that verifies at session start that the primary agent's tool list does NOT include any tool with `E2B_API_KEY` / `DAYTONA_API_KEY` in its arg schema. Include an integration test that attempts to extract sandbox creds from the primary agent's tool arguments."
+    },
+    {
+      "description": "PostToolUse hook latency can degrade user experience if it runs type-checking on every edit. The hook budget is ≤ 2 seconds; heavy tests must be offloaded.",
+      "severity": "medium",
+      "mitigation": "Scope PostToolUse to the single file touched + its direct importers. Offload full-project type-checks to background Sandbox-Runner subagent invoked on a debounced basis. Measure p95 hook latency in CI; fail the plugin build if > 2 s."
+    },
+    {
+      "description": "Hook-based RCE: a malicious plugin author (or a compromised supply chain) could ship a hook that exfiltrates API keys (see ZM4qrjNJU0Q). Users must be able to audit what the plugin does.",
+      "severity": "high",
+      "mitigation": "Ship `/audit` command + `self-audit-plugin-hooks` skill that reads the registered hook set and reports what each does (including network egress attempts). Publish each hook's source inside the plugin repo with a deterministic build. Recommend users review the audit output before enabling the plugin in a production project."
+    },
+    {
+      "description": "LLM-as-judge self-consistency failure: a Verifier model that shares blind spots with the Generator produces 'plausible but incorrect with high confidence' (EMNLP 2025). The plugin must never rely on judge-only verification.",
+      "severity": "medium",
+      "mitigation": "Hard constraint in every skill: LLM-as-judge must pair with at least one deterministic test (pytest run, mutation-kill, schema validation). The Auditor emits verification receipts only when at least one deterministic signal passes. Ensemble Verifier is optional, never sole."
+    },
+    {
+      "description": "Cost blowout: MCTS-style inference-time search (SWE-Search-like) is N× token cost; long PBT/fuzz campaigns are hours of sandbox compute.",
+      "severity": "medium",
+      "mitigation": "Every long-running primitive gated by user-visible 'thoroughness' levels (quick / standard / deep). Default to `quick`. Surface estimated token cost + sandbox time before the user confirms a `deep` run. Offload to Sandbox-Runner subagent so the primary session is never blocked."
+    },
+    {
+      "description": "Mutation testing on refactors becomes expensive if it must run on every change. Incremental mode needs to correctly identify 'touched' after renames.",
+      "severity": "medium",
+      "mitigation": "Default to touched-files incremental mode using git diff + import-graph analysis. Provide an opt-in full run via `/mutate --full`. Periodically run a full baseline in CI so regressions against the full score don't hide."
+    },
+    {
+      "description": "Sandbox provider outage or API rate-limit breaks the plugin entirely if no fallback exists.",
+      "severity": "medium",
+      "mitigation": "Ship local subprocess + seccomp fallback + Piston support. Detect outage via health check; auto-failover to fallback with a warning. Allow user to configure preferred provider order."
+    },
+    {
+      "description": "Users' existing CLAUDE.md rules may conflict with plugin defaults (e.g., the user already mandates a linter run — plugin should not duplicate).",
+      "severity": "low",
+      "mitigation": "On SessionStart, plugin reads CLAUDE.md (if present) and skips any verification rule the user already has. Log detected conflicts; expose override in plugin config. Document the interaction model in README."
+    },
+    {
+      "description": "Agent writes to a non-canonical test path (e.g., `test_helpers.py` at repo root) that the permission-partitioning rule does not cover, defeating the tamper-evident guarantee.",
+      "severity": "medium",
+      "mitigation": "PreToolUse hook uses an allowlist: tests/**, *_test.go, test_*.py, *.test.ts, *.spec.ts, spec/**. Plugin config lets users extend the allowlist per project. Watchdog also flags any PostToolUse write whose content matches `assert|expect|test\\(|it\\(` as potentially a test file."
+    },
+    {
+      "description": "The auditor's 'independent verification' still runs the same tests the primary agent declared. If the agent subtly poisoned test intent (changed semantics, not just pass/fail), Auditor's re-run won't catch it.",
+      "severity": "high",
+      "mitigation": "Auditor includes a mutation-score-delta and a property-count-delta check vs. session-start baseline. If the primary agent's session drops mutation kill-rate or removes Hypothesis properties, Auditor flags SUSPICIOUS. Add optional ensemble Verifier with different model reading the diff for semantic test-intent regressions."
+    },
+    {
+      "description": "Complexity of the full stack (MCP server + 7 subagents + 8 skills + 6 hooks + 5 commands) may produce installation or integration failures on edge-case projects.",
+      "severity": "medium",
+      "mitigation": "Phase-gated release (see Implementation phases); each phase ships a usable v0.x before adding more. Integration tests simulate a small real project at every phase. Troubleshooting docs list known edge cases (monorepos, non-standard test paths, Windows path handling)."
+    },
+    {
+      "description": "T1: Primary agent reads MCP server environment via /proc/<pid>/environ, `ps auxe`, or `lsof` and recovers sandbox provider credentials. Process-boundary isolation alone is insufficient when the primary agent has Bash access on the same OS session.",
+      "severity": "high",
+      "mitigation": "MCP server issues ephemeral per-call sandbox tokens signed with an HMAC key; no long-lived provider API keys in process env. Defense-in-depth: when OS supports it, launch MCP server under a separate POSIX user or container namespace with env dropped after spawn. Integration test attempts /proc read and `ps auxe` from the primary agent's Bash tool; test fails if any `E2B_API_KEY` / `DAYTONA_API_KEY` substring is recoverable."
+    },
+    {
+      "description": "T5: Reward-Hacking Watchdog bypass via dynamic dispatch — `eval(\"pytest.mark.skip\")`, `importlib` monkey-patching, `builtins` reassignment, decorator rewriting, `sys.modules` mutation — none of which match the static regex ruleset.",
+      "severity": "high",
+      "mitigation": "Replace regex ruleset with an AST-based semantic analyzer (Python: `ast` module; JS/TS: `@babel/parser`) that flags calls to `eval`, `exec`, dynamic attribute assignment on assertion libraries, decorator mutation, and `sys.modules`/`require.cache` writes. Mutation-score-delta and property-count-delta vs session-start baseline become required signals in every Auditor verdict (not optional)."
+    },
+    {
+      "description": "T8: GDPR / data-residency — source code egress to E2B, Daytona, or Modal sandboxes (US/EU regions) without user consent. Material under GDPR Art. 28 for regulated users.",
+      "severity": "medium",
+      "mitigation": "Region pinning in provider config (`E2B_REGION=eu-west-1`, etc.); opt-in egress flag required to enable managed sandbox on GDPR-scope projects; local-fallback (subprocess + seccomp on Linux/WSL, Docker on others) is the default for regulated users. Ship a `data-residency-audit` skill that reports every provider used, region, and the type of code egressed in the current session."
+    },
+    {
+      "description": "T7: Supply-chain compromise of the 15+ wrapped CLIs (Stryker, mutmut, Atheris, Mutahunter, LLMorpheus, CrossHair, icontract, deal, Hypothesis, HypoFuzz, Pydantic, zod, pyright, ruff, eslint). Dependency confusion or typosquatting turns any one of them into an RCE vector inside the plugin.",
+      "severity": "high",
+      "mitigation": "Pin exact versions + integrity hashes in plugin's install manifest; ship an SBOM and verify with sigstore at install time; `/audit` command reports the current SBOM vs pinned-baseline delta on demand. Publish provenance attestations for the plugin itself; instruct users to install only from the Anthropic plugin registry."
+    },
+    {
+      "description": "Plugin-self-tamper: a malicious fork strips the Auditor subagent while keeping the plugin name and manifest. Users who pip/npm/claude-install the wrong source get a degraded experience that still claims full verification.",
+      "severity": "medium",
+      "mitigation": "Signed plugin.json + Anthropic plugin-registry verification at install; README publishes a fingerprint that users can verify post-install; `/audit` self-reports the installed manifest's signature chain. Coordinate with Anthropic on registry enforcement as an open question."
+    },
+    {
+      "description": "T6: SessionStart baseline poisoning — if primary-agent tool use begins before the SessionStart snapshot commits, test-file modifications can enter the baseline and defeat the Auditor's pin.",
+      "severity": "medium",
+      "mitigation": "SessionStart hook is atomic: the plugin withholds the primary agent's Edit/Write/Bash tool permissions until `.acv/session-start.json` is written, signed, and closed. On any SessionStart failure, the plugin refuses to register its tools and surfaces a clear error to the user."
+    },
+    {
+      "description": "T2: Rigged-impl-to-match-test attack — primary agent does not edit tests but rewrites production code semantics to match weakened oracles. Auditor's test-pin alone cannot catch this.",
+      "severity": "high",
+      "mitigation": "Auditor pins BOTH tests/ AND production-file hashes at invocation time. Mutation-score-delta and property-count-delta vs session-start baseline are required signals: any drop in either score triggers a SUSPICIOUS verdict. Optional `contract-first` mode in Phase 4 adds independent-spec-derivation from contracts/types/docstrings when annotations are present."
+    }
+  ],
+  "success_criteria": [
+    "A user with no prior setup installs the plugin and, within one session, gets a blocking Auditor verdict when a primary agent tries to overwrite its own tests to force a pass.",
+    "Running `/pbt <target>` on any pure function with type annotations produces at least one validated bug or proves no bug exists at configured thoroughness, with reproducible Hypothesis seed.",
+    "Running `/mutate <paths>` produces a mutation-score delta report, proposes killing tests, and those tests route through the Test-Author filter pipeline (build → pass → coverage → mutation-kill).",
+    "Auditor emits a verification receipt for every 'done' claim; Stop hook provably blocks 'done' if receipt is missing.",
+    "PostToolUse hook p95 latency ≤ 2 seconds across a reference project of 10k LOC.",
+    "Reward-Hacking Watchdog + Auditor together catch ≥ 80% of scenarios in the Phase 0 cheating-agent corpus (8–12 scenarios) drawn from Berkeley/DebugML/ImpossibleBench literature, measured as a published release metric.",
+    "Verification-Quality Score is surfaced in the Auditor evidence and reflects all four dimensions (coverage / mutation / properties / contracts).",
+    "Plugin works end-to-end in managed-sandbox mode (E2B) AND in local-fallback mode (subprocess + seccomp) with identical user-visible surface.",
+    "`/audit` output is accurate: reports every hook, every subagent, every MCP tool, and the credential-source for each sandbox provider.",
+    "Zero sandbox credentials appear in the primary agent's visible tool arguments across a 1,000-call integration test.",
+    "v1.0 works with Python and TypeScript/JavaScript projects with first-class library coverage. Rust support deferred to v2 (cargo-mutants only; Hypothesis/CrossHair equivalents not yet mature enough to wrap).",
+    "The README lets a new user install and run `/verify` in under 5 minutes on a clean machine with E2B API key.",
+    "Auditor verdict includes mutation-score-delta and property-count-delta vs session-start baseline on every run; any drop triggers SUSPICIOUS.",
+    "Production-file hashes are pinned at Auditor time; Auditor can identify which production files changed between session-start and verification.",
+    "SessionStart is atomic: primary agent Edit/Write/Bash tools are unavailable until `.acv/session-start.json` is written and signed; an integration test verifies this ordering.",
+    "Verification receipts are HMAC-signed; a tampered receipt is rejected by the Stop hook.",
+    "`/audit` command reports SBOM delta vs pinned baseline and surfaces any supply-chain drift.",
+    "The Reward-Hacking Watchdog is AST-based (not regex); it detects dynamic-dispatch bypass patterns (eval, importlib, builtins reassignment, decorator rewriting, sys.modules mutation)."
+  ],
+  "notes": "Refined to v0.2.0 after adversarial debate (transcript dt-b7153d0f). 20 changes accepted, 5 rejected. Key refinements: 'tamper-proof' → 'tamper-evident'; accurate Claude Code hook semantics (PostToolUse is feedback, not hard block); corrected Hypothesis ghostwriter templates; explicit threat-model (T1–T8); 7 new risk entries; Phase 0 cheating-agent corpus dogfooding; HMAC-signed receipts; AST-based Watchdog; production-file-hash pinning; SessionStart atomicity; unified mutant descriptor schema; Inspect AI runs via Sandbox-Runner subprocess (not in-process); Rust deferred to v2; Windows compatibility matrix documented. Open questions (7) routed to validation phase. See pipeline_mcp_data/debates/debate_acv_spec_28e6911d.json for full transcript. Patch v0.2.1 applies 6 corrections from validation-report vr-4c9b1e83 (see pipeline_mcp_data/reports/validation_report_acv_v2.json): (1) Stop/SubagentStop decision values are `block` only (omit-to-allow); (2) PostToolUse does support `decision: block`+reason as feedback; (3) plugin manifest lives at `.claude-plugin/plugin.json`, hooks at `hooks/hooks.json`, MCP at `.mcp.json`; (4) Pydantic AI retry is opt-in via `ModelRetry` in `output_validators`; (5) Inspect AI subprocess delegation is an engineering choice; (6) PreToolUse supports a fourth value `defer`. Also dropped `errors-from` from the ghostwriter template list (not a standalone template)."
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/goosefly99/agent_code_validation/settings.schema.json",
+  "title": "agent-code-validation settings",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "verification_quality_floors": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coverage_pct": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "mutation_score_pct": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "property_count": { "type": "integer", "minimum": 0 },
+        "contract_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "sandbox_provider_preference": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["e2b", "daytona", "modal", "docker", "local"] }
+    },
+    "allow_local_fallback": { "type": "boolean" },
+    "thoroughness_default": { "type": "string", "enum": ["quick", "standard", "thorough"] },
+    "ensemble_verifier": { "type": "boolean" },
+    "ensemble_verifier_threshold": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "test_path_allowlist": { "type": "array", "items": { "type": "string" } },
+    "post_tool_use_latency_budget_ms": { "type": "integer", "minimum": 0 },
+    "pre_compact_block_on_suspicious": { "type": "boolean" },
+    "audit_signing_key_rotation": { "type": "string", "enum": ["session-start", "never"] },
+    "enabled": { "type": "boolean" }
+  }
+}

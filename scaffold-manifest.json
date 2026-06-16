@@ -5,7 +5,7 @@
   "design_spec": {
     "id": "acv_spec_28e6911d",
     "version": "0.2.1",
-    "path": "pipeline_mcp_data/specs/acv_spec_28e6911d_v2_1.json"
+    "path": "spec/acv_spec_v2_1.json"
   },
   "generated_at": "2026-04-23T01:23:11.525448+00:00",
   "scaffold_root": ".",

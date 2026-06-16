@@ -5,7 +5,7 @@ they write**. Built around the universal 2025–2026 Generate → Verify → Ref
 loop with a tamper-evident Auditor subagent as the headline differentiator.
 
 **Status:** review — design spec v0.2.1, scaffold v0.1.0.
-**Spec:** `pipeline_mcp_data/specs/acv_spec_28e6911d_v2_1.json`
+**Spec:** `spec/acv_spec_v2_1.json`
 **Scaffold date:** 2026-04-23
 
 ## What's in the box

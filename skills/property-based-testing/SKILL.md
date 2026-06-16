@@ -26,4 +26,4 @@ Generate property-based tests for a function with Hypothesis + ghostwriter.
 
 - MCP server: `acv-mcp` (see `.mcp.json`)
 - Subagents: see `agents/`
-- Spec: `pipeline_mcp_data/specs/acv_spec_28e6911d_v2_1.json` — component "Skills Set"
+- Spec: `spec/acv_spec_v2_1.json` — component "Skills Set"

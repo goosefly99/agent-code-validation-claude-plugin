@@ -2,7 +2,7 @@
 name: test-author
 description: The ONLY subagent permitted to write to tests/** paths. Runs Meta ACH filter pipeline on every proposed test
 model: sonnet
-tools: Read, Write, Edit, Bash, acv-mcp tools
+tools: Read, Write, Edit, Bash, mcp__acv-mcp__pbt_run, mcp__acv-mcp__mutation_test, mcp__acv-mcp__run_in_sandbox, mcp__acv-mcp__diff_test
 ---
 
 # Test Author subagent
