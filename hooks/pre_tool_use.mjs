@@ -1,37 +1,42 @@
 #!/usr/bin/env node
-// Hook stub — see plugin ROADMAP.md Phase mapping below.
-// Contract: read JSON event from stdin, write hook output JSON to stdout.
-// Exit 0 on success; non-zero = hook error (Claude Code surfaces to user).
+// PreToolUse — permission partitioning. tests/** is read-only to everyone but
+// the `test-author` subagent. Uses the shared glob matcher (the old inline
+// regex let `tests/foo.py` through) and handles Edit / Write / MultiEdit.
+//
+// Hook contract: read JSON event from stdin; write hook output to stdout.
+//   hookSpecificOutput.permissionDecision ∈ {allow, deny, ask, defer}
 
 import { readFileSync } from "node:fs";
+import { isTestPath, readSettings, resolveProjectDir } from "./_lib/acv.mjs";
 
 const event = JSON.parse(readFileSync(0, "utf-8"));
 
-// Phase 3 (permission partitioning).
-// Responsibilities (spec v0.2.1 Hooks Layer):
-//   - Match target path against tests/** allowlist
-//     (tests/**, *_test.go, test_*.py, *.test.ts, *.spec.ts, spec/**).
-//   - If match AND caller is not the `test-author` subagent (check event.agentId
-//     or event.metadata.subagent), emit permissionDecision: "deny".
-// Claude Code hook contract (PreToolUse):
-//   hookSpecificOutput.permissionDecision ∈ {allow, deny, ask, defer}
+/** Every file path this tool call would write, across Edit/Write/MultiEdit shapes. */
+function targetPaths(ev) {
+  const ti = ev.tool_input ?? {};
+  const paths = [];
+  if (typeof ti.file_path === "string") paths.push(ti.file_path);
+  if (Array.isArray(ti.edits)) {
+    for (const e of ti.edits) if (e && typeof e.file_path === "string") paths.push(e.file_path);
+  }
+  return paths;
+}
 
-const path = event.tool_input?.file_path ?? "";
-const isTestPath = /^(tests\/|.+\/(tests|spec)\/|.*(_test\.go|test_.+\.py|.+\.test\.(t|j)s|.+\.spec\.(t|j)s))$/.test(path);
+const allowlist = readSettings(resolveProjectDir()).test_path_allowlist;
+const paths = targetPaths(event);
+const touchesTest = paths.some((p) => isTestPath(p, allowlist));
 const callerIsTestAuthor = event.metadata?.subagent === "test-author";
 
-if (isTestPath && !callerIsTestAuthor) {
+if (touchesTest && !callerIsTestAuthor) {
   console.log(JSON.stringify({
     hookSpecificOutput: {
       permissionDecision: "deny",
-      permissionDecisionReason: (
-        "agent_code_validation: tests/** is read-only to primary agent. " +
-        "Invoke the `test-author` subagent to write tests."
-      ),
+      permissionDecisionReason:
+        "agent_code_validation: tests/** is read-only to the primary agent. " +
+        "Invoke the `test-author` subagent to write or modify tests.",
     },
   }));
   process.exit(0);
 }
 
-// Allow (field omitted = default allow).
-console.log(JSON.stringify({}));
+console.log(JSON.stringify({})); // allow (field omitted = default allow)
