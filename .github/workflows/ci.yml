@@ -18,6 +18,7 @@ jobs:
           python-version: "3.11"
       - run: npm install
       - run: npm -w mcp-server run build
+      - run: npm run test:hooks
       - run: npm -w mcp-server run test
       - run: npm run lint
       - run: node tests/smoke/mcp_handshake.mjs
