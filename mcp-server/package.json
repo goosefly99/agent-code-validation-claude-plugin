@@ -9,6 +9,7 @@
     "dev": "tsc -w -p tsconfig.json",
     "start": "node dist/index.js",
     "test": "vitest run",
+    "lint": "eslint \"src/**/*.ts\"",
     "docker:build": "docker build -t acv-mcp:0.1.0 .",
     "docker:run": "docker run --rm -i -v \"$PWD/../.acv\":/workspace/.acv -e ACV_PROVENANCE_DIR=/workspace/.acv acv-mcp:0.1.0"
   },
@@ -19,7 +20,9 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
+    "eslint": "^9.9.0",
     "typescript": "^5.4.0",
+    "typescript-eslint": "^8.0.0",
     "vitest": "^1.6.0"
   },
   "engines": {

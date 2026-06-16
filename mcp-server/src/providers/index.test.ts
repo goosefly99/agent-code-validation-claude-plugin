@@ -36,7 +36,7 @@ describe("resolveProvider()", () => {
   });
 
   it("returns a fresh instance after resetResolverCache()", async () => {
-    const p1 = await resolveProvider();
+    await resolveProvider();
     resetResolverCache();
     const p2 = await resolveProvider();
     // Both resolve to local; the important thing is the call succeeds after reset.

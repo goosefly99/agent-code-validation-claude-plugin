@@ -9,7 +9,7 @@
   "scripts": {
     "build": "npm -w mcp-server run build",
     "test": "npm -w mcp-server run test && python tests/cheating_corpus/harness.py",
-    "lint": "npm -w mcp-server run lint || true",
+    "lint": "npm -w mcp-server run lint",
     "docker:build": "npm -w mcp-server run build && npm -w mcp-server run docker:build"
   },
   "engines": {
